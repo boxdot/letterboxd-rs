@@ -3,14 +3,14 @@ extern crate hex;
 extern crate uuid;
 extern crate hyper;
 
-use std::time::{SystemTime, UNIX_EPOCH};
 use std::str;
+use std::time::{SystemTime, UNIX_EPOCH};
 
-use crypto::sha2::Sha256;
 use crypto::hmac::Hmac;
 use crypto::mac::Mac;
-use uuid::Uuid;
+use crypto::sha2::Sha256;
 use hex::ToHex;
+use uuid::Uuid;
 
 fn nonce() -> Uuid {
     Uuid::new_v4()
@@ -82,11 +82,7 @@ impl LetterboxdAPI {
         );
 
         let salted_msg = format!("{}\0{}\0{}", method, url, body);
-        format!(
-            "{}&signature={}",
-            url,
-            hmac_sha256(&self.shared_secret, &salted_msg)
-        )
+        format!("{}&signature={}", url, hmac_sha256(&self.shared_secret, &salted_msg))
     }
 }
 
@@ -97,12 +93,9 @@ mod tests {
 
     #[test]
     fn test_url() {
-        let key = String::from(
-            "4a168ac5ef7f124d03364db8be04394f319a4114a2e70695fa585ef778dd15e6",
-        );
-        let secret = String::from(
-            "27be8dfc7d2c27e8cffb0b74a8e5c9235e70c71f6c34892677bd6746fbcc0b0b",
-        );
+        let key = String::from("4a168ac5ef7f124d03364db8be04394f319a4114a2e70695fa585ef778dd15e6");
+        let secret =
+            String::from("27be8dfc7d2c27e8cffb0b74a8e5c9235e70c71f6c34892677bd6746fbcc0b0b");
         let lbd = LetterboxdAPI::new(key, secret);
 
         let uuid = Uuid::from_str("9d54386f-118e-4876-b8e8-92ba37d451e7")
