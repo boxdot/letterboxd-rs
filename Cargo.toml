@@ -1,0 +1,10 @@
+[package]
+name = "letterboxd"
+version = "0.1.0"
+authors = ["boxdot <d@zerovolt.org>"]
+
+[dependencies]
+hex = "0.2.x"
+hyper = "0.11.x"
+rust-crypto = "0.2.x"
+uuid = { version = "0.4.x", features = ["v4"] }
