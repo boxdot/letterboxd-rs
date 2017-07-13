@@ -1,3 +1,5 @@
+/// Api Docs: http://letterboxd-api.dev.cactuslab.com
+
 extern crate crypto;
 extern crate hex;
 extern crate hyper;
