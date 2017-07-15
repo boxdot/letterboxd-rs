@@ -17,7 +17,7 @@ Note: The [Letterboxd API](http://letterboxd-api.dev.cactuslab.com) has a beta s
 - [ ] Entpoint Log-Entry
 - [ ] Entpoint Me
 - [ ] Entpoint Member
-- [ ] Entpoint Search
+- [x] Entpoint Search
 
 ## License
 
