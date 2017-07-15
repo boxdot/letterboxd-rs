@@ -110,15 +110,142 @@ impl SearchRequest {
 }
 
 #[derive(Clone, Debug, Deserialize)]
-pub struct AbstractSearchItem {
-    #[serde(rename = "type")]
-    item_type: Vec<SearchResultType>,
-    score: usize,
+struct Contributor {
+    id: String,
+    name: String,
+    // statistic: ContributorStatistics
+    // links: Vec<Link>
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct FilmSummary {
+    id: String,
+    name: String,
+    original_name: Option<String>,
+    alternative_names: Vec<String>,
+    release_year: u16,
+    directors: Vec<ContributorSummary>,
+    poster: Image,
+    relationships: Vec<MemberFilmRelationship>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ContributorSummary {
+    id: String,
+    name: String,
+    character_name: Option<String>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+struct MemberFilmRelationship {
+    member: MemberSummary,
+    relationship: FilmRelationship,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct FilmRelationship {
+    /// Will be true if the member has indicated they’ve seen the film (via the ‘eye’ icon) or has
+    /// a log entry for the film.
+    watched: bool,
+    /// Will be true if the member likes the film (via the ‘heart’ icon).
+    liked: bool,
+    /// Will be true if the member listed the film as one of their four favorites.
+    favorited: bool,
+    /// Will be true if the film is in the member’s watchlist.
+    in_watchlist: bool,
+    /// The member’s rating for the film.
+    rating: f32,
+    /// A list of LIDs for reviews the member has written for the film in the order they were
+    /// added, with most recent reviews first.
+    reviews: Vec<String>,
+    /// A list of LIDs for log entries the member has added for the film in diary order, with most
+    /// recent entries first.
+    diary_entries: Vec<String>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+enum MemberStatus {
+    Crew,
+    Patron,
+    Pro,
+    Member,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct MemberSummary {
+    /// The LID of the member.
+    id: String,
+    /// The member’s Letterboxd username. Usernames must be between 2 and 15 characters long and
+    /// may only contain upper or lowercase letters, numbers or the underscore (_) character.
+    username: String,
+    /// The given name of the member.
+    given_name: Option<String>,
+    /// The family name of the member.
+    family_name: Option<String>,
+    /// A convenience method that returns the member’s given name and family name concatenated with
+    /// a space, if both are set, or just their given name or family name, if one is set, or their
+    /// username, if neither is set. Will never be empty.
+    display_name: String,
+    /// A convenience method that returns the member’s given name, if set, or their username. Will never be empty.
+    short_name: String,
+    /// The member’s preferred pronoun set. Use the /members/pronouns endpoint to request all
+    //available pronoun sets.
+    // pronoun: Pronoun,
+    /// The member’s avatar image at multiple sizes.
+    avatar: Image,
+    /// The member’s account type.
+    member_status: MemberStatus,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+struct Image {
+    sizes: Vec<ImageSize>,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+struct ImageSize {
+    /// The image width in pixels.
+    width: u32,
+    /// The image height in pixels.
+    height: u32,
+    url: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+struct ListSummary {
+    id: String,
+    name: String,
+    // TODO
+}
+
+#[derive(Clone, Debug, Deserialize)]
+struct LogEntry {
+    id: String,
+    name: String,
+    // TODO
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(tag = "type")]
+enum AbstractSearchItem {
+    ContributorSearchItem {
+        score: f32,
+        contributor: Contributor,
+    },
+    FilmSearchItem { score: f32, film: FilmSummary },
+    ListSearchItem { score: f32, list: ListSummary },
+    MemberSearchItem { score: f32, member: MemberSummary },
+    ReviewSearchItem { score: f32, review: LogEntry },
+    TagSearchItem { score: f32, tag: String },
 }
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct SearchResponse {
-    next: Cursor,
+    next: Option<Cursor>,
     items: Vec<AbstractSearchItem>,
 }
 
