@@ -1274,15 +1274,15 @@ pub struct ListSummary {
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-struct ListUpdateEntry {
+pub struct ListUpdateEntry {
     /// The LID of the film.
-    film: String,
+    pub film: String,
     /// The entry’s rank in the list, numbered from 1. If not set, the entry will stay in the same place (if already in the list) or be appended to the end of the list (if not in the list). If set, any entries at or after this position will be incremented by one. Sending two or more ListUpdateEntrys with the same rank will return an error.
-    rank: usize,
+    pub rank: Option<usize>,
     /// The notes for the list entry in LBML. May contain the following HTML tags: <br> <strong> <em> <b> <i> <a href=""> <blockquote>. This field has a maximum size of 100,000 characters.
-    notes: String,
+    pub notes: String,
     /// Set to true if the member has indicated that the notes field contains plot spoilers for the film.
-    contains_spoilers: bool,
+    pub contains_spoilers: bool,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -1312,23 +1312,23 @@ enum ListUpdateMessage {
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-struct ListUpdateRequest {
+pub struct ListUpdateRequest {
     /// Set to true if the owner has elected to publish the list for other members to see.
-    published: bool,
+    pub published: bool,
     /// The name of the list.
-    name: String,
+    pub name: String,
     /// Set to true if the owner has elected to make this a ranked list.
-    ranked: bool,
+    pub ranked: bool,
     /// The list description in LBML. May contain the following HTML tags: <br> <strong> <em> <b> <i> <a href=""> <blockquote>. This field has a maximum size of 100,000 characters.
-    description: String,
+    pub description: Option<String>,
     /// The tags for the list.
-    tags: Vec<String>,
+    pub tags: Vec<String>,
     /// Specify the LIDs of films to be removed from the list.
-    films_to_remove: Vec<String>,
+    pub films_to_remove: Vec<String>,
     /// The specified entries will be inserted/appended to the list if they are not already present, or updated if they are present.
-    entries: Vec<ListUpdateEntry>,
+    pub entries: Vec<ListUpdateEntry>,
     /// The third-party service or services to which this list should be shared. Valid options are found in the ListRelationship (see the /list/{id}/me endpoint).
-    share: Vec<ThirdPartyService>,
+    pub share: Vec<ThirdPartyService>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
