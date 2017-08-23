@@ -64,6 +64,32 @@ impl SearchRequest {
     }
 }
 
+impl ListUpdateRequest {
+    pub fn new(name: String, entries: Vec<ListUpdateEntry>) -> ListUpdateRequest {
+        ListUpdateRequest {
+            published: false,
+            name: name,
+            ranked: false,
+            description: None,
+            tags: Vec::new(),
+            films_to_remove: Vec::new(),
+            entries: entries,
+            share: Vec::new(),
+        }
+    }
+}
+
+impl ListUpdateEntry {
+    pub fn new(film: String) -> ListUpdateEntry {
+        ListUpdateEntry {
+            film: film,
+            rank: None,
+            notes: String::new(),
+            contains_spoilers: false,
+        }
+    }
+}
+
 fn nonce() -> Uuid {
     Uuid::new_v4()
 }
