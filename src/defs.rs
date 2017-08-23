@@ -949,41 +949,41 @@ pub enum Link {
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-struct List {
+pub struct List {
     /// The LID of the list.
-    id: String,
+    pub id: String,
     /// The name of the list.
-    name: String,
+    pub name: String,
     /// The number of films in the list.
-    film_count: usize,
+    pub film_count: usize,
     /// Will be true if the owner has elected to publish the list for other members to see.
-    published: bool,
+    pub published: bool,
     /// Will be true if the owner has elected to make this a ranked list.
-    ranked: bool,
+    pub ranked: bool,
     /// Will be true if the owner has added notes to any entries.
-    has_entries_with_notes: bool,
+    pub has_entries_with_notes: bool,
     /// The list description in LBML. May contain the following HTML tags: <br> <strong> <em> <b> <i> <a href=""> <blockquote>.
-    description_lbml: String,
-    // The tags for the list.
-    tags2: Vec<Tag>,
-    // The third-party service or services to which this list can be shared. Only included if the authenticated member is the list’s owner.
-    can_share_on: ThirdPartyService,
-    // The third-party service or services to which this list has been shared. Only included if the authenticated member is the list’s owner.
-    shared_on: ThirdPartyService,
+    pub description_lbml: String,
+    /// The tags for the list.
+    pub tags2: Vec<Tag>,
+    /// The third-party service or services to which this list can be shared. Only included if the authenticated member is the list’s owner.
+    pub can_share_on: ThirdPartyService,
+    /// The third-party service or services to which this list has been shared. Only included if the authenticated member is the list’s owner.
+    pub shared_on: ThirdPartyService,
     /// ISO 8601 format with UTC timezone, i.e. YYYY-MM-DDThh:mm:ssZ "1997-08-29T07:14:00Z"
-    when_created: String,
+    pub when_created: String,
     /// ISO 8601 format with UTC timezone, i.e. YYYY-MM-DDThh:mm:ssZ "1997-08-29T07:14:00Z"
-    when_published: String,
+    pub when_published: String,
     /// The member who owns the list.
-    owner: MemberSummary,
+    pub owner: MemberSummary,
     /// The list this was cloned from, if applicable.
-    cloned_from: ListIdentifier,
+    pub cloned_from: ListIdentifier,
     /// The first 12 entries in the list. To fetch more than 12 entries, and to fetch the entry notes, use the /list/{id}/entries endpoint.
-    preview_entries: Vec<ListEntrySummary>,
+    pub preview_entries: Vec<ListEntrySummary>,
     /// A list of relevant URLs to this entity, on Letterboxd and external sites.
-    links: Vec<Link>,
+    pub links: Vec<Link>,
     /// The list description formatted as HTML.
-    description: String,
+    pub description: String,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -1272,7 +1272,7 @@ pub struct ListSummary {
     pub description: String,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ListUpdateEntry {
     /// The LID of the film.
@@ -1286,7 +1286,7 @@ pub struct ListUpdateEntry {
 }
 
 #[derive(Deserialize, Debug, Clone)]
-enum ListUpdateMessageCode {
+pub enum ListUpdateMessageCode {
     ListNameIsBlank,
     UnknownFilmCode,
     InvalidRatingValue,
@@ -1300,7 +1300,7 @@ enum ListUpdateMessageCode {
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
-enum ListUpdateMessage {
+pub enum ListUpdateMessage {
     Error {
         /// The error message code.
         code: ListUpdateMessageCode,
@@ -1310,7 +1310,7 @@ enum ListUpdateMessage {
     Success,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ListUpdateRequest {
     /// Set to true if the owner has elected to publish the list for other members to see.
@@ -1332,11 +1332,11 @@ pub struct ListUpdateRequest {
 }
 
 #[derive(Deserialize, Debug, Clone)]
-struct ListUpdateResponse {
+pub struct ListUpdateResponse {
     /// The response object.
-    data: List,
+    pub data: List,
     // A list of messages the API client should show to the user.
-    messages: Vec<ListUpdateMessage>,
+    pub messages: Vec<ListUpdateMessage>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -2233,7 +2233,7 @@ struct ReportReviewRequest {
     message: Option<String>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub enum ThirdPartyService {
     Facebook,
