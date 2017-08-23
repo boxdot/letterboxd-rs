@@ -1,4 +1,5 @@
 /// Api Docs: http://letterboxd-api.dev.cactuslab.com
+
 extern crate crypto;
 extern crate hex;
 extern crate hyper;
@@ -201,6 +202,48 @@ impl Client {
             &search_request.into_url_params(),
             "",
         )
+    }
+
+    pub fn patch_list(
+        &self,
+        id: &str,
+        update_request: ListUpdateRequest,
+    ) -> Box<Future<Item = defs::ListUpdateResponse, Error = Error>> {
+        let body = match serde_json::to_string(&update_request) {
+            Ok(body) => body,
+            Err(err) => return Box::new(future::result(Err(Error::from(err)))),
+        };
+        println!("{:?}", body);
+        let uri: hyper::Uri = match self.generate_signed_url(
+            hyper::Method::Patch,
+            &format!("list/{}", id),
+            &vec![],
+            &body,
+        ).parse() {
+            Ok(uri) => uri,
+            Err(err) => return Box::new(future::result(Err(Error::from(err)))),
+        };
+
+        let mut req = hyper::Request::new(hyper::Method::Patch, uri.clone());
+        req.headers_mut().set(hyper::header::ContentType::json());
+        req.headers_mut().set(hyper::header::ContentLength(
+            body.len() as u64,
+        ));
+        req.set_body(body);
+
+        let patch = self.hyper_client.request(req).from_err();
+        let fut_resp = patch.and_then(move |resp| {
+            let status_code = resp.status();
+            let body = resp.body().concat2().from_err();
+            body.and_then(move |chunk| if status_code != hyper::StatusCode::Ok {
+                let resp = String::from(str::from_utf8(&chunk)?);
+                Err(Error::server_error(status_code, resp, uri))
+            } else {
+                let json: defs::ListUpdateResponse = serde_json::from_slice(&chunk)?;
+                Ok(json)
+            })
+        });
+        Box::new(fut_resp)
     }
 }
 
