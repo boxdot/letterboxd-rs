@@ -184,16 +184,15 @@ pub enum AbstractSearchItem {
 }
 
 #[derive(Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
-struct AccessToken {
+pub struct AccessToken {
     /// The access token that grants the member access. Combine this with the token_type to form the Authorization header.
-    access_token: String,
+    pub access_token: String,
     /// The type of the access token. Use value: bearer
-    token_type: String,
+    pub token_type: String,
     /// The refresh token is used to obtain a new access token, after the access token expires, without needing to prompt the member for their credentials again. The refresh token only expires if it is explicitly invalidated by Letterboxd, in which case the member should be prompted for their credentials (or stored credentials used).
-    refresh_token: String,
+    pub refresh_token: String,
     /// The number of seconds before the access token expires.
-    expires_in: usize,
+    pub expires_in: usize,
 }
 
 #[derive(Deserialize, Debug, Clone)]
