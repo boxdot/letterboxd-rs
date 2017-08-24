@@ -30,67 +30,6 @@ mod defs;
 pub use self::error::Error;
 pub use defs::*;
 
-impl SearchRequest {
-    pub fn new(input: String) -> SearchRequest {
-        SearchRequest {
-            cursor: None,
-            per_page: None,
-            input: input,
-            search_method: None,
-            include: None,
-            contribution_type: None,
-        }
-    }
-
-    fn into_url_params(self) -> Vec<(&'static str, String)> {
-        // TODO: write a generic version for any serializable type
-        let mut params: Vec<(&'static str, String)> =
-            vec![
-                ("cursor", self.cursor),
-                ("perPage", self.per_page.as_ref().map(|x| x.to_string())),
-                ("input", Some(self.input.replace(" ", "+"))),
-                ("searchMethod", self.search_method.map(|x| format!("{:?}", x))),
-                ("contributionType", self.contribution_type.map(|x| format!("{:?}", x))),
-            ].into_iter()
-                .filter_map(|(k, v)| if let Some(v) = v { Some((k, v)) } else { None })
-                .collect();
-
-        if let Some(include) = self.include {
-            for x in include.into_iter() {
-                params.push(("include", format!("{:?}", x)));
-            }
-        }
-
-        params
-    }
-}
-
-impl ListUpdateRequest {
-    pub fn new(name: String) -> ListUpdateRequest {
-        ListUpdateRequest {
-            published: None,
-            name: name,
-            ranked: None,
-            description: None,
-            tags: Vec::new(),
-            films_to_remove: Vec::new(),
-            entries: Vec::new(),
-            share: Vec::new(),
-        }
-    }
-}
-
-impl ListUpdateEntry {
-    pub fn new(film: String) -> ListUpdateEntry {
-        ListUpdateEntry {
-            film: film,
-            rank: None,
-            notes: None,
-            contains_spoilers: None,
-        }
-    }
-}
-
 fn nonce() -> Uuid {
     Uuid::new_v4()
 }
@@ -134,7 +73,7 @@ impl Client {
         &self,
         username: &str,
         password: &str,
-    ) -> Box<Future<Item = defs::AccessToken, Error = Error>> {
+    ) -> Box<Future<Item = AccessToken, Error = Error>> {
         let body = format!("grant_type=password&username={}&password={}", username, password);
         let uri: hyper::Uri =
             match self.generate_signed_url(hyper::Method::Post, "auth/token", &vec![], &body)
@@ -158,7 +97,7 @@ impl Client {
                 let resp = String::from(str::from_utf8(&chunk)?);
                 Err(Error::server_error(status_code, resp, uri))
             } else {
-                let json: defs::AccessToken = serde_json::from_slice(&chunk)?;
+                let json: AccessToken = serde_json::from_slice(&chunk)?;
                 Ok(json)
             })
         });
@@ -243,8 +182,8 @@ impl Client {
         &self,
         id: &str,
         update_request: &ListUpdateRequest,
-        access_token: &defs::AccessToken,
-    ) -> Box<Future<Item = defs::ListUpdateResponse, Error = Error>> {
+        access_token: &AccessToken,
+    ) -> Box<Future<Item = ListUpdateResponse, Error = Error>> {
         let body = match serde_json::to_string(update_request) {
             Ok(body) => body,
             Err(err) => return Box::new(future::result(Err(Error::from(err)))),
@@ -277,7 +216,7 @@ impl Client {
                 let resp = String::from(str::from_utf8(&chunk)?);
                 Err(Error::server_error(status_code, resp, uri))
             } else {
-                let json: defs::ListUpdateResponse = serde_json::from_slice(&chunk)?;
+                let json: ListUpdateResponse = serde_json::from_slice(&chunk)?;
                 Ok(json)
             })
         });
