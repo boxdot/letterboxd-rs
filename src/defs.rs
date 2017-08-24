@@ -320,7 +320,7 @@ struct ContributionStatistics {
     film_count: usize,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Serialize, Debug, Clone)]
 pub enum ContributionType {
     Director,
     Actor,
@@ -2433,13 +2433,14 @@ struct ReviewUpdateResponse {
     messages: Vec<LogEntryUpdateMessage>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 pub enum SearchMethod {
     FullText,
     Autocomplete,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct SearchRequest {
     /// The pagination cursor.
     pub cursor: Option<Cursor>,
@@ -2466,28 +2467,6 @@ impl SearchRequest {
             contribution_type: None,
         }
     }
-
-    // TODO: write a generic version for any serializable type
-    pub fn into_url_params(self) -> Vec<(&'static str, String)> {
-        let mut params: Vec<(&'static str, String)> =
-            vec![
-                ("cursor", self.cursor),
-                ("perPage", self.per_page.as_ref().map(|x| x.to_string())),
-                ("input", Some(self.input.replace(" ", "+"))),
-                ("searchMethod", self.search_method.map(|x| format!("{:?}", x))),
-                ("contributionType", self.contribution_type.map(|x| format!("{:?}", x))),
-            ].into_iter()
-                .filter_map(|(k, v)| if let Some(v) = v { Some((k, v)) } else { None })
-                .collect();
-
-        if let Some(include) = self.include {
-            for x in include.into_iter() {
-                params.push(("include", format!("{:?}", x)));
-            }
-        }
-
-        params
-    }
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -2498,7 +2477,7 @@ pub struct SearchResponse {
     pub items: Vec<AbstractSearchItem>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 pub enum SearchResultType {
     ContributorSearchItem,
     FilmSearchItem,

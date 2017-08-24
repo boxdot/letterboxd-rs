@@ -8,6 +8,7 @@ extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+extern crate serde_url_params;
 extern crate uuid;
 extern crate futures;
 extern crate tokio_core;
@@ -76,7 +77,7 @@ impl Client {
     ) -> Box<Future<Item = AccessToken, Error = Error>> {
         let body = format!("grant_type=password&username={}&password={}", username, password);
         let uri: hyper::Uri =
-            match self.generate_signed_url(hyper::Method::Post, "auth/token", &vec![], &body)
+            match self.generate_signed_url(hyper::Method::Post, "auth/token", "", &body)
                 .parse() {
                 Ok(uri) => uri,
                 Err(err) => return Box::new(future::result(Err(Error::from(err)))),
@@ -89,8 +90,8 @@ impl Client {
         req.headers_mut().set(hyper::header::Accept::json());
         req.set_body(body);
 
-        let patch = self.hyper_client.request(req).from_err();
-        let fut_resp = patch.and_then(move |resp| {
+        let req = self.hyper_client.request(req).from_err();
+        let fut_resp = req.and_then(move |resp| {
             let status_code = resp.status();
             let body = resp.body().concat2().from_err();
             body.and_then(move |chunk| if status_code != hyper::StatusCode::Ok {
@@ -108,7 +109,7 @@ impl Client {
         &self,
         method: hyper::Method,
         endpoint: &str,
-        parameters: &[(&'static str, String)],
+        parameters: &str,
         body: &str,
     ) -> String {
         self.url_with_nonce_and_timestamp(method, endpoint, parameters, body, nonce(), now())
@@ -118,17 +119,11 @@ impl Client {
         &self,
         method: hyper::Method,
         endpoint: &str,
-        parameters: &[(&'static str, String)],
+        parameters: &str,
         body: &str,
         nonce: Uuid,
         timestamp: u64,
     ) -> String {
-        let parameters: Vec<String> = parameters
-            .iter()
-            .map(|&(key, ref val)| format!("{}={}", key, val))
-            .collect();
-        let parameters = parameters.join("&");
-
         let url = format!(
             "{}{}?apikey={}&nonce={}&timestamp={}{}{}",
             self.url,
@@ -173,7 +168,7 @@ impl Client {
         self.generate_signed_url(
             hyper::Method::Get,
             "search",
-            &search_request.into_url_params(),
+            &serde_url_params::to_string(&search_request).unwrap(), // TODO: Error handling
             "",
         )
     }
@@ -191,7 +186,7 @@ impl Client {
         let uri: hyper::Uri = match self.generate_signed_url(
             hyper::Method::Patch,
             &format!("list/{}", id),
-            &vec![],
+            "",
             &body,
         ).parse() {
             Ok(uri) => uri,
@@ -249,7 +244,7 @@ mod tests {
             lbd.url_with_nonce_and_timestamp(
                 hyper::Method::Get,
                 "film/2a9q",
-                &vec![("foo", String::from("bar"))],
+                "foo=bar",
                 "",
                 uuid,
                 timestamp,
@@ -294,6 +289,6 @@ mod tests {
 
         let search_request = SearchRequest::new(String::from("Брат"));
         let url = lbd.url_for_search(search_request);
-        assert!(url.contains("input=Брат"));
+        assert!(url.contains("input=%D0%91%D1%80%D0%B0%D1%82"));
     }
 }
