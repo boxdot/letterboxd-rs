@@ -962,13 +962,13 @@ pub struct List {
     /// Will be true if the owner has added notes to any entries.
     pub has_entries_with_notes: bool,
     /// The list description in LBML. May contain the following HTML tags: <br> <strong> <em> <b> <i> <a href=""> <blockquote>.
-    pub description_lbml: String,
+    pub description_lbml: Option<String>,
     /// The tags for the list.
     pub tags2: Vec<Tag>,
     /// The third-party service or services to which this list can be shared. Only included if the authenticated member is the list’s owner.
-    pub can_share_on: ThirdPartyService,
+    pub can_share_on: Vec<ThirdPartyService>,
     /// The third-party service or services to which this list has been shared. Only included if the authenticated member is the list’s owner.
-    pub shared_on: ThirdPartyService,
+    pub shared_on: Vec<ThirdPartyService>,
     /// ISO 8601 format with UTC timezone, i.e. YYYY-MM-DDThh:mm:ssZ "1997-08-29T07:14:00Z"
     pub when_created: String,
     /// ISO 8601 format with UTC timezone, i.e. YYYY-MM-DDThh:mm:ssZ "1997-08-29T07:14:00Z"
@@ -976,13 +976,13 @@ pub struct List {
     /// The member who owns the list.
     pub owner: MemberSummary,
     /// The list this was cloned from, if applicable.
-    pub cloned_from: ListIdentifier,
+    pub cloned_from: Option<ListIdentifier>,
     /// The first 12 entries in the list. To fetch more than 12 entries, and to fetch the entry notes, use the /list/{id}/entries endpoint.
     pub preview_entries: Vec<ListEntrySummary>,
     /// A list of relevant URLs to this entity, on Letterboxd and external sites.
     pub links: Vec<Link>,
     /// The list description formatted as HTML.
-    pub description: String,
+    pub description: Option<String>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -1166,7 +1166,8 @@ struct ListEntry {
 #[derive(Deserialize, Debug, Clone)]
 pub struct ListEntrySummary {
     /// The entry’s rank in the list, numbered from 1.
-    pub rank: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub rank: Option<usize>,
     /// The film for this entry.
     pub film: FilmSummary,
 }
@@ -1258,7 +1259,7 @@ pub struct ListSummary {
     /// Will be true if the owner has elected to make this a ranked list.
     pub ranked: bool,
     /// The list description in LBML. May contain the following HTML tags: <br> <strong> <em> <b> <i> <a href=""> <blockquote>. The text is a preview extract, and may be truncated if it’s too long.
-    pub description_lbml: String,
+    pub description_lbml: Option<String>,
     /// Will be true if the list description was truncated because it’s very long.
     pub description_truncated: bool,
     /// The member who owns the list.
@@ -1277,11 +1278,14 @@ pub struct ListUpdateEntry {
     /// The LID of the film.
     pub film: String,
     /// The entry’s rank in the list, numbered from 1. If not set, the entry will stay in the same place (if already in the list) or be appended to the end of the list (if not in the list). If set, any entries at or after this position will be incremented by one. Sending two or more ListUpdateEntrys with the same rank will return an error.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub rank: Option<usize>,
     /// The notes for the list entry in LBML. May contain the following HTML tags: <br> <strong> <em> <b> <i> <a href=""> <blockquote>. This field has a maximum size of 100,000 characters.
-    pub notes: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub notes: Option<String>,
     /// Set to true if the member has indicated that the notes field contains plot spoilers for the film.
-    pub contains_spoilers: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub contains_spoilers: Option<bool>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -1309,24 +1313,31 @@ pub enum ListUpdateMessage {
     Success,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct ListUpdateRequest {
     /// Set to true if the owner has elected to publish the list for other members to see.
-    pub published: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub published: Option<bool>,
     /// The name of the list.
     pub name: String,
     /// Set to true if the owner has elected to make this a ranked list.
-    pub ranked: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub ranked: Option<bool>,
     /// The list description in LBML. May contain the following HTML tags: <br> <strong> <em> <b> <i> <a href=""> <blockquote>. This field has a maximum size of 100,000 characters.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     /// The tags for the list.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub tags: Vec<String>,
     /// Specify the LIDs of films to be removed from the list.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub films_to_remove: Vec<String>,
     /// The specified entries will be inserted/appended to the list if they are not already present, or updated if they are present.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub entries: Vec<ListUpdateEntry>,
     /// The third-party service or services to which this list should be shared. Valid options are found in the ListRelationship (see the /list/{id}/me endpoint).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub share: Vec<ThirdPartyService>,
 }
 

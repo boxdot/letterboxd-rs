@@ -66,15 +66,15 @@ impl SearchRequest {
 }
 
 impl ListUpdateRequest {
-    pub fn new(name: String, entries: Vec<ListUpdateEntry>) -> ListUpdateRequest {
+    pub fn new(name: String) -> ListUpdateRequest {
         ListUpdateRequest {
-            published: false,
+            published: None,
             name: name,
-            ranked: false,
+            ranked: None,
             description: None,
             tags: Vec::new(),
             films_to_remove: Vec::new(),
-            entries: entries,
+            entries: Vec::new(),
             share: Vec::new(),
         }
     }
@@ -85,8 +85,8 @@ impl ListUpdateEntry {
         ListUpdateEntry {
             film: film,
             rank: None,
-            notes: String::new(),
-            contains_spoilers: false,
+            notes: None,
+            contains_spoilers: None,
         }
     }
 }
