@@ -242,13 +242,13 @@ impl Client {
     pub fn patch_list(
         &self,
         id: &str,
-        update_request: ListUpdateRequest,
+        update_request: &ListUpdateRequest,
+        access_token: &defs::AccessToken,
     ) -> Box<Future<Item = defs::ListUpdateResponse, Error = Error>> {
-        let body = match serde_json::to_string(&update_request) {
+        let body = match serde_json::to_string(update_request) {
             Ok(body) => body,
             Err(err) => return Box::new(future::result(Err(Error::from(err)))),
         };
-        println!("{:?}", body);
         let uri: hyper::Uri = match self.generate_signed_url(
             hyper::Method::Patch,
             &format!("list/{}", id),
@@ -263,6 +263,9 @@ impl Client {
         req.headers_mut().set(hyper::header::ContentType::json());
         req.headers_mut().set(hyper::header::ContentLength(
             body.len() as u64,
+        ));
+        req.headers_mut().set(hyper::header::Authorization(
+            hyper::header::Bearer { token: access_token.access_token.clone() },
         ));
         req.set_body(body);
 
