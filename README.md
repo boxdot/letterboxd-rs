@@ -7,15 +7,15 @@ Note: The [Letterboxd API](http://letterboxd-api.dev.cactuslab.com) has a beta s
 ## Progress
 
 - [x] Request signing
-- [ ] Entpoint Auth
-- [ ] Entpoint Comment
-- [ ] Entpoint Contributor
-- [ ] Entpoint Film
-- [ ] Entpoint List
-- [ ] Entpoint Log-Entry
-- [ ] Entpoint Me
-- [ ] Entpoint Member
-- [x] Entpoint Search
+- [ ] Endpoint Auth
+- [ ] Endpoint Comment
+- [ ] Endpoint Contributor
+- [ ] Endpoint Film
+- [ ] Endpoint List
+- [ ] Endpoint Log-Entry
+- [ ] Endpoint Me
+- [ ] Endpoint Member
+- [x] Endpoint Search
 
 ## License
 
