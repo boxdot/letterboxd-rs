@@ -1288,6 +1288,17 @@ pub struct ListUpdateEntry {
     pub contains_spoilers: Option<bool>,
 }
 
+impl ListUpdateEntry {
+    pub fn new(film: String) -> ListUpdateEntry {
+        ListUpdateEntry {
+            film: film,
+            rank: None,
+            notes: None,
+            contains_spoilers: None,
+        }
+    }
+}
+
 #[derive(Deserialize, Debug, Clone)]
 pub enum ListUpdateMessageCode {
     ListNameIsBlank,
@@ -1339,6 +1350,21 @@ pub struct ListUpdateRequest {
     /// The third-party service or services to which this list should be shared. Valid options are found in the ListRelationship (see the /list/{id}/me endpoint).
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub share: Vec<ThirdPartyService>,
+}
+
+impl ListUpdateRequest {
+    pub fn new(name: String) -> ListUpdateRequest {
+        ListUpdateRequest {
+            published: None,
+            name: name,
+            ranked: None,
+            description: None,
+            tags: Vec::new(),
+            films_to_remove: Vec::new(),
+            entries: Vec::new(),
+            share: Vec::new(),
+        }
+    }
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -2413,8 +2439,7 @@ pub enum SearchMethod {
     Autocomplete,
 }
 
-#[derive(Deserialize, Debug, Clone)]
-#[serde(rename_all = "camelCase")]
+#[derive(Debug, Clone)]
 pub struct SearchRequest {
     /// The pagination cursor.
     pub cursor: Option<Cursor>,
@@ -2428,6 +2453,41 @@ pub struct SearchRequest {
     pub include: Option<Vec<SearchResultType>>,
     /// The type of contributor to search for. Implies include=ContributorSearchItem.
     pub contribution_type: Option<ContributionType>,
+}
+
+impl SearchRequest {
+    pub fn new(input: String) -> SearchRequest {
+        SearchRequest {
+            cursor: None,
+            per_page: None,
+            input: input,
+            search_method: None,
+            include: None,
+            contribution_type: None,
+        }
+    }
+
+    // TODO: write a generic version for any serializable type
+    pub fn into_url_params(self) -> Vec<(&'static str, String)> {
+        let mut params: Vec<(&'static str, String)> =
+            vec![
+                ("cursor", self.cursor),
+                ("perPage", self.per_page.as_ref().map(|x| x.to_string())),
+                ("input", Some(self.input.replace(" ", "+"))),
+                ("searchMethod", self.search_method.map(|x| format!("{:?}", x))),
+                ("contributionType", self.contribution_type.map(|x| format!("{:?}", x))),
+            ].into_iter()
+                .filter_map(|(k, v)| if let Some(v) = v { Some((k, v)) } else { None })
+                .collect();
+
+        if let Some(include) = self.include {
+            for x in include.into_iter() {
+                params.push(("include", format!("{:?}", x)));
+            }
+        }
+
+        params
+    }
 }
 
 #[derive(Deserialize, Debug, Clone)]
