@@ -602,7 +602,7 @@ pub struct FilmContributions {
 }
 
 // TODO: Ordering, Dedup
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 enum FilmStatus {
     Released,
     NotReleased,
@@ -615,7 +615,7 @@ enum FilmStatus {
 }
 
 // TODO: Ordering
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 enum FilmRelationshipType {
     Watched,
     NotWatched,
@@ -626,7 +626,7 @@ enum FilmRelationshipType {
     Favorited,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 enum FilmContributionsSort {
     FilmName,
     ReleaseDateLatestFirst,
@@ -641,7 +641,7 @@ enum FilmContributionsSort {
     FilmPopularityThisYear,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 struct FilmContributionsRequest {
     /// The pagination cursor.
@@ -692,7 +692,7 @@ struct FilmIdentifier {
     id: String,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct FilmRelationship {
     /// Will be true if the member has indicated they’ve seen the film (via the ‘eye’ icon) or has a log entry for the film.
@@ -704,7 +704,7 @@ pub struct FilmRelationship {
     /// Will be true if the film is in the member’s watchlist.
     pub in_watchlist: bool,
     /// The member’s rating for the film.
-    pub rating: f32,
+    pub rating: Option<f32>,
     /// A list of LIDs for reviews the member has written for the film in the order they were added, with most recent reviews first.
     pub reviews: Vec<String>,
     /// A list of LIDs for log entries the member has added for the film in diary order, with most recent entries first.
@@ -797,11 +797,11 @@ pub struct FilmSummary {
     /// The other names by which the film is known (including alternative titles and/or foreign translations).
     pub alternative_names: Option<Vec<String>>,
     /// The year in which the film was first released.
-    pub release_year: u16,
+    pub release_year: Option<u16>,
     /// The list of directors for the film.
     pub directors: Vec<ContributorSummary>,
     /// The film’s poster image (2:3 ratio in multiple sizes).
-    pub poster: Image,
+    pub poster: Option<Image>,
     /// Relationships to the film for the authenticated member (if any) and other members where relevant.
     pub relationships: Vec<MemberFilmRelationship>,
 }
@@ -820,7 +820,7 @@ struct FilmsAutocompleteResponse {
     items: Vec<FilmSummary>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 enum FilmRequestSort {
     FilmName,
     ReleaseDateLatestFirst,
@@ -839,7 +839,7 @@ enum FilmRequestSort {
     FilmPopularityWithFriendsThisYear,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 struct FilmsRequest {
     /// The pagination cursor.
@@ -1089,7 +1089,7 @@ struct ListCreationRequest {
     share: Option<Vec<ThirdPartyService>>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 enum ListEntriesRequestSort {
     ListRanking,
     WhenAddedToList,
@@ -1106,7 +1106,7 @@ enum ListEntriesRequestSort {
     FilmPopularityThisYear,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 struct ListEntriesRequest {
     /// The pagination cursor.
@@ -1261,7 +1261,7 @@ pub struct ListSummary {
     /// The list description in LBML. May contain the following HTML tags: <br> <strong> <em> <b> <i> <a href=""> <blockquote>. The text is a preview extract, and may be truncated if it’s too long.
     pub description_lbml: Option<String>,
     /// Will be true if the list description was truncated because it’s very long.
-    pub description_truncated: bool,
+    pub description_truncated: Option<bool>,
     /// The member who owns the list.
     pub owner: MemberSummary,
     /// The list this was cloned from, if applicable.
@@ -1269,7 +1269,7 @@ pub struct ListSummary {
     /// The first 12 entries in the list. To fetch more than 12 entries, and to fetch the entry notes, use the /list/{id}/entries endpoint.
     pub preview_entries: Vec<ListEntrySummary>,
     /// The list description formatted as HTML. The text is a preview extract, and may be truncated if it’s too long.
-    pub description: String,
+    pub description: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -1375,8 +1375,8 @@ pub struct ListUpdateResponse {
     pub messages: Vec<ListUpdateMessage>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
-enum ListRequestSort {
+#[derive(Serialize, Debug, Clone)]
+pub enum ListRequestSort {
     Date,
     WhenCreatedLatestFirst,
     WhenCreatedEarliestFirst,
@@ -1391,61 +1391,61 @@ enum ListRequestSort {
     ListPopularityWithFriendsThisYear,
 }
 
-#[derive(Deserialize, Debug, Clone)]
-enum ListMemberRelationship {
+#[derive(Serialize, Debug, Clone)]
+pub enum ListMemberRelationship {
     Owner,
     Liked,
 }
 
-#[derive(Deserialize, Debug, Clone)]
-enum ListStatus {
+#[derive(Serialize, Debug, Clone)]
+pub enum ListStatus {
     Clean,
     Published,
     Unpublished,
 }
 
-#[derive(Deserialize, Debug, Clone)]
-enum ListRequestFilter {
+#[derive(Serialize, Debug, Clone)]
+pub enum ListRequestFilter {
     NoDuplicateMembers,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
-struct ListsRequest {
+pub struct ListsRequest {
     /// The pagination cursor.
-    cursor: Option<Cursor>,
+    pub cursor: Option<Cursor>,
     /// The number of items to include per page (default is 20, maximum is 100).
-    per_page: Option<usize>,
+    pub per_page: Option<usize>,
     /// Defaults to Date, which returns lists that were most recently created/updated first. The ListPopularityWithFriends values are only available to signed-in members and consider popularity amongst the signed-in member’s friends.
-    sort: ListRequestSort,
+    pub sort: Option<ListRequestSort>,
     /// Specify the LID of a film to return lists that include that film.
-    film: String,
+    pub film: Option<String>,
     /// Specify the LID of a list to return lists that were cloned from that list.
-    cloned_from: String,
+    pub cloned_from: Option<String>,
     /// Specify a tag code to limit the returned lists to those tagged accordingly. Must be used with member and memberRelationship=Owner.
-    tag_code: String,
+    pub tag_code: Option<String>,
     /// Specify the LID of a member to return lists that are owned or liked by the member (or their friends, when used with includeFriends).
-    member: String,
+    pub member: Option<String>,
     /// Must be used in conjunction with member. Defaults to Owner, which returns lists owned by the specified member. Use Liked to return lists liked by the member.
-    member_relationship: ListMemberRelationship,
+    pub member_relationship: Option<ListMemberRelationship>,
     /// Must be used in conjunction with member. Defaults to None, which only returns lists from the member’s account. Use Only to return lists from the member’s friends, and All to return lists from both the member and their friends.
-    include_friends: IncludeFriends,
+    pub include_friends: Option<IncludeFriends>,
     /// Specify Clean to return lists that do not contain profane language. Specify Published to return the member’s lists that have been made public. Note that unpublished lists for members other than the authenticated member are never returned. Specify NotPublished to return the authenticated member’s lists that have not been made public.
     #[serde(rename = "where")]
-    where_list_status: Vec<ListStatus>,
-    // Specify NoDuplicateMembers to limit the list to only the first list for each member. filter=NoDuplicateMembers
-    filter: Vec<ListRequestFilter>,
+    pub where_list_status: Vec<ListStatus>,
+    /// Specify NoDuplicateMembers to limit the list to only the first list for each member. filter=NoDuplicateMembers
+    pub filter: Vec<ListRequestFilter>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
-struct ListsResponse {
+pub struct ListsResponse {
     /// The cursor to the next page of results.
     next: Option<Cursor>,
     /// The list of lists.
     items: Vec<ListSummary>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 enum LogEntriesRequestSort {
     WhenAdded,
     Date,
@@ -1474,13 +1474,13 @@ enum LogEntriesRequestSort {
     FilmPopularityWithFriendsThisYear,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 enum LogEntryRelationshipType {
     Owner,
     Liked,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 enum LogEntryStatus {
     HasDiaryDate,
     HasReview,
@@ -1498,12 +1498,12 @@ enum LogEntryStatus {
     NotRated,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 enum LogEntryFilter {
     NoDuplicateMembers,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 struct LogEntriesRequest {
     /// The pagination cursor.
     cursor: Option<Cursor>,
@@ -1786,7 +1786,7 @@ enum MemberRelationshipType {
     IsFollowedBy,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 enum MemberFilmRelationshipsRequestSort {
     Date,
     Name,
@@ -1800,7 +1800,7 @@ enum MemberFilmRelationshipsRequestSort {
     MemberPopularityWithFriendsThisYear,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 struct MemberFilmRelationshipsRequest {
     /// The pagination cursor.
     cursor: Option<Cursor>,
@@ -2064,7 +2064,7 @@ struct MemberTagCounts {
     lists: usize,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Serialize)]
 struct MemberTagsRequest {
     /// A case-insensitive prefix match. E.g. “pro” will match “pro”, “project” and “Professional”. An empty input will match all tags.
     input: String,
@@ -2076,7 +2076,7 @@ struct MemberTagsResponse {
     items: Vec<MemberTag>,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Serialize)]
 enum MembersRequestSort {
     Date,
     Name,
@@ -2091,13 +2091,13 @@ enum MembersRequestSort {
 }
 
 // TODO: name
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Serialize)]
 enum MembersRequestRelationship {
     IsFollowing,
     IsFollowedBy,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct MembersRequest {
     /// The pagination cursor.
@@ -2179,7 +2179,7 @@ struct RatingsHistogramBar {
     count: usize,
 }
 
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Serialize, Clone, Debug)]
 #[serde(rename_all = "camelCase")]
 struct RegisterRequest {
     /// The username for the new account. Use the /auth/username-check endpoint to check availability.
@@ -2192,7 +2192,7 @@ struct RegisterRequest {
     accept_terms_of_use: bool,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 enum ReportCommentReason {
     Spoilers,
     Spam,
@@ -2200,7 +2200,7 @@ enum ReportCommentReason {
     Other,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 struct ReportCommentRequest {
     ///  The reason why the comment was reported.
     reason: ReportCommentReason,
@@ -2208,14 +2208,14 @@ struct ReportCommentRequest {
     message: Option<String>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 enum ReportFilmReason {
     Duplicate,
     NotAFilm,
     Other,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 struct ReportFilmRequest {
     /// The reason why the film was reported.
     reason: ReportFilmReason,
@@ -2223,7 +2223,7 @@ struct ReportFilmRequest {
     message: Option<String>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 enum ReportListReason {
     Spoilers,
     Spam,
@@ -2231,7 +2231,7 @@ enum ReportListReason {
     Other,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 struct ReportListRequest {
     /// The reason why the list was reported.
     reason: ReportListReason,
@@ -2239,13 +2239,13 @@ struct ReportListRequest {
     message: Option<String>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 enum ReportMemberReason {
     SpamAccount,
     Other,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 struct ReportMemberRequest {
     /// The reason why the member was reported.
     reason: ReportMemberReason,
@@ -2253,7 +2253,7 @@ struct ReportMemberRequest {
     message: Option<String>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 enum ReportReviewReason {
     Spoilers,
     Spam,
@@ -2261,7 +2261,7 @@ enum ReportReviewReason {
     Other,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 struct ReportReviewRequest {
     /// The reason why the review was reported.
     reason: ReportReviewReason,
@@ -2392,7 +2392,7 @@ enum ReviewRelationshipUpdateMessage {
     Success,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 struct ReviewRelationshipUpdateRequest {
     /// Set to true if the member likes the review (via the ‘heart’ icon). A member may not like their own review.
     liked: bool,
@@ -2526,8 +2526,8 @@ struct UsernameCheckResponse {
     result: UsernameCheckResult,
 }
 
-#[derive(Deserialize, Debug, Clone)]
-enum WatchlistSort {
+#[derive(Serialize, Debug, Clone)]
+pub enum WatchlistSort {
     Added,
     FilmName,
     ReleaseDateLatestFirst,
@@ -2543,14 +2543,14 @@ enum WatchlistSort {
 }
 
 // TODO: order
-#[derive(Deserialize, Debug, Clone)]
-enum IncludeFriends {
+#[derive(Serialize, Debug, Clone)]
+pub enum IncludeFriends {
     None,
     All,
     Only,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 struct WatchlistRequest {
     /// The pagination cursor.
