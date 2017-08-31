@@ -173,6 +173,50 @@ impl Client {
         )
     }
 
+    pub fn get_lists(
+        &self,
+        request: &ListsRequest,
+        access_token: Option<&AccessToken>,
+    ) -> Box<Future<Item = ListsResponse, Error = Error>> {
+        let uri = self.generate_signed_url(
+            hyper::Method::Get,
+            "lists",
+            &serde_url_params::to_string(&request).unwrap(), // TODO: Error handling
+            "",
+        );
+        let uri: hyper::Uri = match uri.parse() {
+            Ok(uri) => uri,
+            Err(err) => {
+                return Box::new(future::result(Err(Error::from(err))));
+            }
+        };
+
+        let mut req = hyper::Request::new(hyper::Method::Get, uri.clone());
+        req.headers_mut().set(hyper::header::ContentType::json());
+        req.headers_mut().set(hyper::header::ContentLength(0));
+        if let Some(token) = access_token {
+            req.headers_mut().set(hyper::header::Authorization(
+                hyper::header::Bearer { token: token.access_token.clone() },
+            ));
+        };
+
+        let get = self.hyper_client.request(req).from_err();
+        let fut_resp = get.and_then(move |resp| {
+            let status_code = resp.status();
+            let body = resp.body().concat2().from_err();
+            body.and_then(move |chunk| if status_code != hyper::StatusCode::Ok {
+                let resp = String::from(str::from_utf8(&chunk)?);
+                Err(Error::server_error(status_code, resp, uri))
+            } else {
+                let chunk = String::from(str::from_utf8(&chunk)?);
+                print!("{}", chunk);
+                let json: ListsResponse = serde_json::from_str(&chunk)?;
+                Ok(json)
+            })
+        });
+        Box::new(fut_resp)
+    }
+
     pub fn patch_list(
         &self,
         id: &str,
