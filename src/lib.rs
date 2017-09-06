@@ -27,6 +27,8 @@ use uuid::Uuid;
 
 mod error;
 mod defs;
+#[macro_use]
+mod rest;
 
 pub use self::error::Error;
 pub use defs::*;
@@ -99,6 +101,7 @@ impl Client {
                 Err(Error::server_error(status_code, resp, uri))
             } else {
                 let json: AccessToken = serde_json::from_slice(&chunk)?;
+                println!("{:?}", json);
                 Ok(json)
             })
         });
@@ -139,128 +142,9 @@ impl Client {
         format!("{}&signature={}", url, hmac_sha256(&self.shared_secret, &salted_msg))
     }
 
-    pub fn search(
-        &self,
-        search_request: SearchRequest,
-    ) -> Box<Future<Item = SearchResponse, Error = Error>> {
-        let uri: hyper::Uri = match self.url_for_search(search_request).parse() {
-            Ok(uri) => uri,
-            Err(err) => {
-                return Box::new(future::result(Err(Error::from(err))));
-            }
-        };
-        let get = self.hyper_client.get(uri.clone()).from_err();
-        let fut_resp = get.and_then(move |resp| {
-            let status_code = resp.status();
-            let body = resp.body().concat2().from_err();
-            body.and_then(move |chunk| if status_code != hyper::StatusCode::Ok {
-                let resp = String::from(str::from_utf8(&chunk)?);
-                Err(Error::server_error(status_code, resp, uri))
-            } else {
-                let json: SearchResponse = serde_json::from_slice(&chunk)?;
-                Ok(json)
-            })
-        });
-        Box::new(fut_resp)
-    }
-
-    fn url_for_search(&self, search_request: SearchRequest) -> String {
-        self.generate_signed_url(
-            hyper::Method::Get,
-            "search",
-            &serde_url_params::to_string(&search_request).unwrap(), // TODO: Error handling
-            "",
-        )
-    }
-
-    pub fn get_lists(
-        &self,
-        request: &ListsRequest,
-        access_token: Option<&AccessToken>,
-    ) -> Box<Future<Item = ListsResponse, Error = Error>> {
-        let uri = self.generate_signed_url(
-            hyper::Method::Get,
-            "lists",
-            &serde_url_params::to_string(&request).unwrap(), // TODO: Error handling
-            "",
-        );
-        let uri: hyper::Uri = match uri.parse() {
-            Ok(uri) => uri,
-            Err(err) => {
-                return Box::new(future::result(Err(Error::from(err))));
-            }
-        };
-
-        let mut req = hyper::Request::new(hyper::Method::Get, uri.clone());
-        req.headers_mut().set(hyper::header::ContentType::json());
-        req.headers_mut().set(hyper::header::ContentLength(0));
-        if let Some(token) = access_token {
-            req.headers_mut().set(hyper::header::Authorization(
-                hyper::header::Bearer { token: token.access_token.clone() },
-            ));
-        };
-
-        let get = self.hyper_client.request(req).from_err();
-        let fut_resp = get.and_then(move |resp| {
-            let status_code = resp.status();
-            let body = resp.body().concat2().from_err();
-            body.and_then(move |chunk| if status_code != hyper::StatusCode::Ok {
-                let resp = String::from(str::from_utf8(&chunk)?);
-                Err(Error::server_error(status_code, resp, uri))
-            } else {
-                let chunk = String::from(str::from_utf8(&chunk)?);
-                print!("{}", chunk);
-                let json: ListsResponse = serde_json::from_str(&chunk)?;
-                Ok(json)
-            })
-        });
-        Box::new(fut_resp)
-    }
-
-    pub fn patch_list(
-        &self,
-        id: &str,
-        update_request: &ListUpdateRequest,
-        access_token: &AccessToken,
-    ) -> Box<Future<Item = ListUpdateResponse, Error = Error>> {
-        let body = match serde_json::to_string(update_request) {
-            Ok(body) => body,
-            Err(err) => return Box::new(future::result(Err(Error::from(err)))),
-        };
-        let uri: hyper::Uri = match self.generate_signed_url(
-            hyper::Method::Patch,
-            &format!("list/{}", id),
-            "",
-            &body,
-        ).parse() {
-            Ok(uri) => uri,
-            Err(err) => return Box::new(future::result(Err(Error::from(err)))),
-        };
-
-        let mut req = hyper::Request::new(hyper::Method::Patch, uri.clone());
-        req.headers_mut().set(hyper::header::ContentType::json());
-        req.headers_mut().set(hyper::header::ContentLength(
-            body.len() as u64,
-        ));
-        req.headers_mut().set(hyper::header::Authorization(
-            hyper::header::Bearer { token: access_token.access_token.clone() },
-        ));
-        req.set_body(body);
-
-        let patch = self.hyper_client.request(req).from_err();
-        let fut_resp = patch.and_then(move |resp| {
-            let status_code = resp.status();
-            let body = resp.body().concat2().from_err();
-            body.and_then(move |chunk| if status_code != hyper::StatusCode::Ok {
-                let resp = String::from(str::from_utf8(&chunk)?);
-                Err(Error::server_error(status_code, resp, uri))
-            } else {
-                let json: ListUpdateResponse = serde_json::from_slice(&chunk)?;
-                Ok(json)
-            })
-        });
-        Box::new(fut_resp)
-    }
+    GET!(search, "search", SearchRequest, SearchResponse);
+    GET!(get_lists, "lists", ListsRequest, ListsResponse);
+    PATCH!(patch_list, ("list/{}", id: &str), ListUpdateRequest, ListUpdateResponse);
 }
 
 #[cfg(test)]
@@ -295,44 +179,5 @@ mod tests {
             ),
             "https://letterboxd.com/api/v0/film/2a9q?apikey=4a168ac5ef7f124d03364db8be04394f319a4114a2e70695fa585ef778dd15e6&nonce=9d54386f-118e-4876-b8e8-92ba37d451e7&timestamp=1499803866&foo=bar&signature=46fe62e84e3b3d417cb539a9d3a5ea79f51f37cc5311d4583ef7d1f9444f8797"
         );
-    }
-
-    #[test]
-    fn test_url_for_search() {
-        let (_, lbd) = get_test_client();
-
-        let url = lbd.url_for_search(SearchRequest::new(String::from("foobar")));
-        assert!(url.contains("input=foobar"));
-
-        let mut search_request = SearchRequest::new(String::from("Fight Club"));
-        search_request.search_method = Some(SearchMethod::FullText);
-        let url = lbd.url_for_search(search_request);
-        assert!(url.contains("input=Fight+Club"));
-        assert!(url.contains("searchMethod=FullText"));
-
-        let mut search_request = SearchRequest::new(String::from("Fight Club"));
-        search_request.include = Some(vec![
-            SearchResultType::FilmSearchItem,
-            SearchResultType::ListSearchItem,
-        ]);
-        let url = lbd.url_for_search(search_request);
-        assert!(url.contains("input=Fight+Club"));
-        assert!(url.contains("include=FilmSearchItem&include=ListSearchItem"));
-
-        let mut search_request = SearchRequest::new(String::from("Fight Club"));
-        search_request.per_page = Some(100);
-        let url = lbd.url_for_search(search_request);
-        assert!(url.contains("input=Fight+Club"));
-        assert!(url.contains("perPage=100"));
-
-        let mut search_request = SearchRequest::new(String::from("Fight Club"));
-        search_request.cursor = Some(String::from("some-unique-id"));
-        let url = lbd.url_for_search(search_request);
-        assert!(url.contains("input=Fight+Club"));
-        assert!(url.contains("cursor=some-unique-id"));
-
-        let search_request = SearchRequest::new(String::from("Брат"));
-        let url = lbd.url_for_search(search_request);
-        assert!(url.contains("input=%D0%91%D1%80%D0%B0%D1%82"));
     }
 }
