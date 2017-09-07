@@ -5,6 +5,9 @@
 //! the types below have to be adjusted with optional values. Further, only the types that are
 //! in the API implementation are public.
 
+// TODO: remove
+#![allow(dead_code)]
+
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 #[serde(tag = "type")]
@@ -248,8 +251,8 @@ struct ActivityResponse {
     items: Vec<AbstractActivity>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
-struct CommentCreationRequest {
+#[derive(Serialize, Debug, Clone)]
+pub struct CommentCreationRequest {
     /// The message portion of the comment in LBML. May contain the following HTML tags: <br> <strong> <em> <b> <i> <a href=""> <blockquote>. This field has a maximum size of 100,000 characters.
     comment: String,
 }
@@ -378,6 +381,9 @@ pub struct DiaryDetails {
     /// Will be true if the member has indicated (or it can be otherwise determined) that the member has seen the film prior to this date.
     pub rewatch: bool,
 }
+
+#[derive(Serialize, Debug, Clone)]
+pub struct EmptyRequest {}
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -972,7 +978,7 @@ pub struct List {
     /// ISO 8601 format with UTC timezone, i.e. YYYY-MM-DDThh:mm:ssZ "1997-08-29T07:14:00Z"
     pub when_created: String,
     /// ISO 8601 format with UTC timezone, i.e. YYYY-MM-DDThh:mm:ssZ "1997-08-29T07:14:00Z"
-    pub when_published: String,
+    pub when_published: Option<String>,
     /// The member who owns the list.
     pub owner: MemberSummary,
     /// The list this was cloned from, if applicable.
@@ -1022,9 +1028,9 @@ struct ListCommentsResponse {
     items: Vec<ListComment>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-struct ListCreateEntry {
+pub struct ListCreateEntry {
     /// The LID of the film.
     film: String,
     /// The entry’s rank in the list, numbered from 1. If not set, the entry will be appended to the end of the list. Sending two or more ListCreateEntrys with the same rank will return an error.
@@ -1036,7 +1042,7 @@ struct ListCreateEntry {
 }
 
 #[derive(Deserialize, Debug, Clone)]
-enum ListCreateMessageCode {
+pub enum ListCreateMessageCode {
     ListNameIsBlank,
     UnknownFilmCode,
     InvalidRatingValue,
@@ -1051,7 +1057,7 @@ enum ListCreateMessageCode {
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
-enum ListCreateMessage {
+pub enum ListCreateMessage {
     Error {
         /// The error message code.
         code: ListCreateMessageCode,
@@ -1062,31 +1068,51 @@ enum ListCreateMessage {
 }
 
 #[derive(Deserialize, Debug, Clone)]
-struct ListCreateResponse {
+pub struct ListCreateResponse {
     /// The response object.
-    data: List,
+    pub data: List,
     // A list of messages the API client should show to the user.
-    messages: Vec<ListCreateMessage>,
+    pub messages: Vec<ListCreateMessage>,
 }
 
-#[derive(Deserialize, Debug, Clone)]
-struct ListCreationRequest {
-    /// Set to true if the owner has elected to publish the list for other members to see.
-    published: bool,
+#[derive(Serialize, Debug, Clone)]
+pub struct ListCreationRequest {
     /// The name of the list.
     name: String,
+    /// Set to true if the owner has elected to publish the list for other members to see.
+    published: bool,
     /// Set to true if the owner has elected to make this a ranked list.
     ranked: bool,
     /// The list description in LBML. May contain the following HTML tags: <br> <strong> <em> <b> <i> <a href=""> <blockquote>. This field has a maximum size of 100,000 characters.
+    #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<String>,
     /// The LID of a list to clone from. Only supported for paying members.
+    #[serde(skip_serializing_if = "Option::is_none")]
     cloned_from: Option<String>,
     // The tags for the list.
-    tags: Option<Vec<String>>,
-    // The films that comprise the list. Required unless source is set.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    tags: Vec<String>,
+    /// The films that comprise the list. Required unless source is set.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     entries: Vec<ListCreateEntry>,
-    // The third-party service or services to which this list should be shared. Valid options are found in the MemberAccount.authorizedSharingServicesForLists (see the /me endpoint).
-    share: Option<Vec<ThirdPartyService>>,
+    /// The third-party service or services to which this list should be shared. Valid options are found in the MemberAccount.authorizedSharingServicesForLists (see the /me endpoint).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    share: Vec<ThirdPartyService>,
+}
+
+impl ListCreationRequest {
+    pub fn new(name: String) -> Self {
+        Self {
+            name: name,
+            published: false,
+            ranked: false,
+            description: None,
+            cloned_from: None,
+            tags: Vec::new(),
+            entries: Vec::new(),
+            share: Vec::new(),
+        }
+    }
 }
 
 #[derive(Serialize, Debug, Clone)]

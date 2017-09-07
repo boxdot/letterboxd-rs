@@ -33,8 +33,13 @@ impl Client {
     }
 
     GET!(search, "search", defs::SearchRequest, defs::SearchResponse);
-    GET!(get_lists, "lists", defs::ListsRequest, defs::ListsResponse);
+
+    GET!(lists, "lists", defs::ListsRequest, defs::ListsResponse);
+    POST!(post_list, "lists", defs::ListCreationRequest, defs::ListCreateResponse);
+
+    GET!(get_list, ("list/{}", id: &str), defs::EmptyRequest, defs::List);
     PATCH!(patch_list, ("list/{}", id: &str), defs::ListUpdateRequest, defs::ListUpdateResponse);
+    DELETE!(delete_list, ("list/{}", id: &str));
 
     pub fn auth(
         &self,
