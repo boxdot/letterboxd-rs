@@ -109,6 +109,38 @@ fn film_availability() {
 
 #[test]
 #[ignore]
+fn film_relationship() {
+    let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
+    let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
+    let username = env::var("LB_USERNAME").unwrap_or_else(usage_and_exit);
+    let password = env::var("LB_PASSWORD").unwrap_or_else(usage_and_exit);
+
+    let mut core = Core::new().unwrap();
+    let client = letterboxd::Client::new(&core.handle(), api_key, api_secret);
+
+    let get_token = client.auth(&username, &password);
+    let token = core.run(get_token).unwrap();
+
+    let do_get_film_relationship = client.film_relationship("2a9q", Some(&token)); // Fight Club
+    core.run(do_get_film_relationship.and_then(do_print))
+        .unwrap();
+
+    let mut req = letterboxd::FilmRelationshipUpdateRequest::default();
+    req.watched = Some(true);
+    let do_update_film_relationship = client.update_film_relationship("2a9q", &req, &token);
+    core.run(do_update_film_relationship.and_then(do_print))
+        .unwrap();
+
+    let mut req = letterboxd::MemberFilmRelationshipsRequest::default();
+    req.per_page = Some(1);
+    let do_get_film_relationship_members =
+        client.film_relationship_members("2a9q", &req, Some(&token));
+    core.run(do_get_film_relationship_members.and_then(do_print))
+        .unwrap();
+}
+
+#[test]
+#[ignore]
 fn search() {
     let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
     let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);

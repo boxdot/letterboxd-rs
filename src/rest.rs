@@ -133,8 +133,29 @@ impl Client {
         defs::FilmAvailabilityResponse
     );
 
-    //     /film/{id}/me
-    //     /film/{id}/members
+    GET!(
+        /// Get details of the authenticated member’s relationship with a film by ID.
+        film_relationship,
+        ("film/{}/me", id: &str),
+        defs::FilmRelationship
+    );
+
+    PATCH!(
+        /// Update the authenticated member’s relationship with a film by ID.
+        update_film_relationship,
+        ("film/{}/me", id: &str),
+        defs::FilmRelationshipUpdateRequest,
+        defs::FilmRelationshipUpdateResponse
+    );
+
+    GET!(
+        /// Get details of the authenticated member’s relationship with a film by ID.
+        film_relationship_members,
+        ("film/{}/members", id: &str),
+        defs::MemberFilmRelationshipsRequest,
+        defs::MemberFilmRelationshipsResponse
+    );
+
     //     /film/{id}/report
     //     /film/{id}/statistics
 

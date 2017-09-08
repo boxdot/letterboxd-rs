@@ -715,14 +715,14 @@ pub struct FilmRelationship {
 }
 
 #[derive(Deserialize, Debug, Clone)]
-enum FilmRelationshipUpdateMessageCode {
+pub enum FilmRelationshipUpdateMessageCode {
     InvalidRatingValue,
     UnableToRemoveWatch,
 }
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(tag = "type")]
-enum FilmRelationshipUpdateMessage {
+pub enum FilmRelationshipUpdateMessage {
     Error {
         /// The error message code.
         code: FilmRelationshipUpdateMessageCode,
@@ -732,25 +732,25 @@ enum FilmRelationshipUpdateMessage {
 }
 
 /// When PATCHing a film relationship, you may send all of the current property struct values, or just those you wish to change. Properties that violate business rules (see watched below) or contain invalid values will be ignored.
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
-struct FilmRelationshipUpdateRequest {
+pub struct FilmRelationshipUpdateRequest {
     /// Set to true to change the film’s status for the authenticated member to ‘watched’ or false for ‘not watched’. If the status is changed to ‘watched’ and the film is in the member’s watchlist, it will be removed as part of this action. You may not change the status of a film to ‘not watched’ if there is existing activity (a review or diary entry) for the authenticated member—check the messages returned from this endpoint to ensure no such business rules have been violated.
-    watched: Option<bool>,
+    pub watched: Option<bool>,
     /// Set to true to change the film’s status for the authenticated member to ‘liked’ or false for ‘not liked’.
-    liked: Option<bool>,
+    pub liked: Option<bool>,
     /// Set to true to add the film to the authenticated member’s watchlist, or false to remove it.
-    in_watchlist: Option<bool>,
+    pub in_watchlist: Option<bool>,
     /// Accepts values between 0.5 and 5.0, with increments of 0.5, or null (to remove the rating).
-    rating: Option<f32>,
+    pub rating: Option<f32>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
-struct FilmRelationshipUpdateResponse {
+pub struct FilmRelationshipUpdateResponse {
     /// The response object.
-    data: FilmRelationship,
+    pub data: FilmRelationship,
     /// A list of messages the API client should show to the user.
-    messages: Vec<FilmRelationshipUpdateMessage>,
+    pub messages: Vec<FilmRelationshipUpdateMessage>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -1810,7 +1810,7 @@ enum MemberRelationshipType {
 }
 
 #[derive(Serialize, Debug, Clone)]
-enum MemberFilmRelationshipsRequestSort {
+pub enum MemberFilmRelationshipsRequestSort {
     Date,
     Name,
     MemberPopularity,
@@ -1823,12 +1823,12 @@ enum MemberFilmRelationshipsRequestSort {
     MemberPopularityWithFriendsThisYear,
 }
 
-#[derive(Serialize, Debug, Clone)]
-struct MemberFilmRelationshipsRequest {
+#[derive(Serialize, Debug, Clone, Default)]
+pub struct MemberFilmRelationshipsRequest {
     /// The pagination cursor.
-    cursor: Option<Cursor>,
+    pub cursor: Option<Cursor>,
     /// The number of items to include per page (default is 20, maximum is 100).
-    per_page: Option<usize>,
+    pub per_page: Option<usize>,
     /// Defaults to Date, which has different semantics based on the request:
     /// When review is specified, members who most recently liked the review appear first.
     /// When list is specified, members who most recently liked the list appear first.
@@ -1838,21 +1838,21 @@ struct MemberFilmRelationshipsRequest {
     /// When member is specified and memberRelationship=IsFollowedBy, most recent followers appear first.
     /// Otherwise, members who most recently joined the site appear first.
     /// The PopularWithFriends values are only available to authenticated members and consider popularity amongst the member’s friends.
-    sort: MemberFilmRelationshipsRequestSort,
+    pub sort: Option<MemberFilmRelationshipsRequestSort>,
     /// Specify the LID of a member to return members who follow or are followed by that member.
-    member: String,
+    pub member: Option<String>,
     /// Must be used in conjunction with member. Defaults to IsFollowing, which returns the list of members followed by the member. Use IsFollowedBy to return the list of members that follow the member.
-    member_relationship: FilmRelationshipType,
+    pub member_relationship: Option<FilmRelationshipType>,
     /// Must be used in conjunction with film. Defaults to Watched, which returns the list of members who have seen the film. Specify the type of relationship to limit the returned members accordingly.
-    film_relationship: FilmRelationshipType,
+    pub film_relationship: Option<FilmRelationshipType>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
-struct MemberFilmRelationshipsResponse {
+pub struct MemberFilmRelationshipsResponse {
     /// The cursor to the next page of results.
-    next: Cursor,
+    pub next: Cursor,
     /// The list of film relationships for members.
-    items: Vec<MemberFilmRelationship>,
+    pub items: Vec<MemberFilmRelationship>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
