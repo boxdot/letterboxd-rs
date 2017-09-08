@@ -88,8 +88,18 @@ impl Client {
 
     // film
 
-    //     /films
-    //     /films/autocomplete
+    GET!(
+        /// A cursored window over the list of films.
+        ///
+        /// Use the ‘next’ cursor to move through the list. The response will include the film
+        /// relationships for the signed-in member and the member indicated by the member LID if
+        /// specified.
+        films,
+        "films",
+        defs::FilmsRequest,
+        defs::FilmsResponse
+    );
+
     //     /films/film-services
     //     /films/genres
     //     /film/{id}
