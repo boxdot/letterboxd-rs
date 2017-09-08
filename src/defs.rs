@@ -891,17 +891,17 @@ struct ForgottenPasswordRequest {
 }
 
 #[derive(Deserialize, Debug, Clone)]
-struct Genre {
+pub struct Genre {
     /// The LID of the genre.
-    id: String,
+    pub id: String,
     /// The name of the genre.
-    name: String,
+    pub name: String,
 }
 
 #[derive(Deserialize, Debug, Clone)]
-struct GenresResponse {
+pub struct GenresResponse {
     /// The list of genres.
-    items: Vec<Genre>,
+    pub items: Vec<Genre>,
 }
 
 #[derive(Deserialize, Debug, Clone)]

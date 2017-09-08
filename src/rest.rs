@@ -110,7 +110,15 @@ impl Client {
         defs::FilmServicesResponse
     );
 
-    //     /films/genres
+    GET!(
+        /// Get a list of genres supported by the `films` function.
+        ///
+        /// Genres are returned in alphabetical order.
+        film_genres,
+        "films/genres",
+        defs::GenresResponse
+    );
+
     //     /film/{id}
     //     /film/{id}/availability
     //     /film/{id}/me
