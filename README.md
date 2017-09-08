@@ -4,6 +4,25 @@ Letterboxd API for access to data on the Letterboxd.com website in Rust.
 
 Note: The [Letterboxd API](http://letterboxd-api.dev.cactuslab.com) has a beta status right now.
 
+## Example
+
+```rust
+let mut core = Core::new().unwrap();
+let client = letterboxd::Client::new(&core.handle(), API_KEY, API_SECRET);
+
+let mut req = letterboxd::SearchRequest::new(String::from("Fight Club"));
+let do_search = client.search(&req, None /* no auth token needed */);
+
+let do_print = |resp| {
+    println!("{:?}", resp);
+    Ok(())
+};
+
+core.run(do_search.and_then(do_print)).unwrap();
+```
+
+For more examples cf. `tests/integration.rs`.
+
 ## Progress
 
 - [x] Request signing
@@ -11,7 +30,7 @@ Note: The [Letterboxd API](http://letterboxd-api.dev.cactuslab.com) has a beta s
 - [ ] Endpoint Comment
 - [ ] Endpoint Contributor
 - [ ] Endpoint Film
-- [ ] Endpoint List
+- [x] Endpoint List
 - [ ] Endpoint Log-Entry
 - [ ] Endpoint Me
 - [ ] Endpoint Member
