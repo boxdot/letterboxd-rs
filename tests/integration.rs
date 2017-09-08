@@ -68,9 +68,28 @@ fn film_genres() {
     let mut core = Core::new().unwrap();
     let client = letterboxd::Client::new(&core.handle(), api_key, api_secret);
 
-    let do_get_film_services = client.film_genres(None);
+    let do_get_film_genres = client.film_genres(None);
 
-    core.run(do_get_film_services.and_then(do_print)).unwrap();
+    core.run(do_get_film_genres.and_then(do_print)).unwrap();
+}
+
+#[test]
+#[ignore]
+fn film() {
+    let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
+    let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
+
+    let mut core = Core::new().unwrap();
+    let client = letterboxd::Client::new(&core.handle(), api_key, api_secret);
+
+    let do_get_film = client.film("2a9q", None); // Fight Club
+    let do_check = |film: letterboxd::Film| {
+        assert_eq!(film.name, "Fight Club");
+        Ok(film)
+    };
+
+    core.run(do_get_film.and_then(do_check).and_then(do_print))
+        .unwrap();
 }
 
 #[test]
@@ -122,8 +141,7 @@ fn list() {
 
     let do_create =
         client.post_list(&letterboxd::ListCreationRequest::new(String::from(LIST_NAME)), &token);
-    let do_find =
-        |resp: letterboxd::ListCreateResponse| client.get_list(&resp.data.id, Some(&token));
+    let do_find = |resp: letterboxd::ListCreateResponse| client.list(&resp.data.id, Some(&token));
     let do_patch = |list: letterboxd::List| {
         let mut req = letterboxd::ListUpdateRequest::new(String::from(LIST_NAME));
         req.entries = vec![

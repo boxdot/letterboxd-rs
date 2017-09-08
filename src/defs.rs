@@ -384,37 +384,37 @@ pub struct DiaryDetails {
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-struct Film {
+pub struct Film {
     /// The LID of the film.
-    id: String,
+    pub id: String,
     /// The title of the film.
-    name: String,
+    pub name: String,
     /// The original title of the film, if it was first released with a non-English title.
-    original_name: Option<String>,
+    pub original_name: Option<String>,
     /// The other names by which the film is known (including alternative titles and/or foreign translations).
-    alternative_names: Vec<String>,
+    pub alternative_names: Vec<String>,
     /// The year in which the film was first released.
-    release_year: u16,
+    pub release_year: u16,
     /// The tagline for the film.
-    tagline: String,
+    pub tagline: String,
     /// A synopsis of the film.
-    description: String,
+    pub description: String,
     /// The film’s duration (in minutes).
-    run_time: u16,
+    pub run_time: u16,
     /// The film’s poster image (2:3 ratio in multiple sizes).
-    poster: Image,
+    pub poster: Image,
     /// The film’s backdrop image (16:9 ratio in multiple sizes).
-    backdrop: Image,
+    pub backdrop: Image,
     /// The backdrop’s vertical focal point, expressed as a proportion of the image’s height, using values between 0.0 and 1.0. Use when cropping the image into a shorter space, such as in the page for a film on the Letterboxd site.
-    backdrop_focal_point: f32,
+    pub backdrop_focal_point: f32,
     /// The film’s trailer.
-    trailer: FilmTrailer,
+    pub trailer: FilmTrailer,
     /// The film’s genres.
-    genres: Vec<Genre>,
+    pub genres: Vec<Genre>,
     /// The film’s contributors (director, cast and crew) grouped by discipline.
-    contributions: Vec<FilmContributions>,
+    pub contributions: Vec<FilmContributions>,
     /// A list of relevant URLs to this entity, on Letterboxd and external sites.
-    links: Vec<Link>,
+    pub links: Vec<Link>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -810,11 +810,11 @@ pub struct FilmSummary {
 }
 
 #[derive(Deserialize, Debug, Clone)]
-struct FilmTrailer {
+pub struct FilmTrailer {
     /// The YouTube ID of the trailer. "ICp4g9p_rgo".
-    id: String,
+    pub id: String,
     /// The YouTube URL for the trailer. "https://www.youtube.com/watch?v=ICp4g9p_rgo"
-    url: String,
+    pub url: String,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -929,7 +929,7 @@ pub enum Link {
         ///   The fully qualified URL on the destination site.
         url: String,
     },
-    Tmbd {
+    Tmdb {
         ///   The object ID for the linked entity on the destination site.
         id: String,
         ///   The fully qualified URL on the destination site.

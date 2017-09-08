@@ -119,7 +119,13 @@ impl Client {
         defs::GenresResponse
     );
 
-    //     /film/{id}
+    GET!(
+        /// Get details about a film by ID.
+        film,
+        ("film/{}", id: &str),
+        defs::Film
+    );
+
     //     /film/{id}/availability
     //     /film/{id}/me
     //     /film/{id}/members
@@ -148,7 +154,7 @@ impl Client {
 
     GET!(
         /// Get details of a list by ID.
-        get_list,
+        list,
         ("list/{}", id: &str),
         defs::List
     );
