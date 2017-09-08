@@ -29,7 +29,7 @@ For more examples cf. `tests/integration.rs`.
 - [ ] Endpoint Auth
 - [ ] Endpoint Comment
 - [ ] Endpoint Contributor
-- [ ] Endpoint Film
+- [x] Endpoint Film (except for `film/report`)
 - [x] Endpoint List
 - [ ] Endpoint Log-Entry
 - [ ] Endpoint Me
