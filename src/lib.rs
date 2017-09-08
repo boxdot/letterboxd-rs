@@ -13,12 +13,12 @@ extern crate futures;
 extern crate tokio_core;
 
 #[macro_use]
-mod restmacro;
+mod rest;
+mod client;
 mod defs;
 mod error;
 mod helper;
-mod rest;
 
 pub use self::error::Error;
+pub use client::Client;
 pub use defs::*;
-pub use rest::Client;
