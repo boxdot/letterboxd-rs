@@ -70,7 +70,7 @@ fn list() {
     let token = core.run(get_token).unwrap();
 
     // 1. create a new list
-    // 2. search for the list  // TODO
+    // 2. search for the list
     // 3. patch the list
     // 4. delete the list
 
@@ -78,13 +78,15 @@ fn list() {
 
     let do_create =
         client.post_list(&letterboxd::ListCreationRequest::new(String::from(LIST_NAME)), &token);
-    let do_patch = |resp: letterboxd::ListCreateResponse| {
+    let do_find =
+        |resp: letterboxd::ListCreateResponse| client.get_list(&resp.data.id, Some(&token));
+    let do_patch = |list: letterboxd::List| {
         let mut req = letterboxd::ListUpdateRequest::new(String::from(LIST_NAME));
         req.entries = vec![
                 letterboxd::ListUpdateEntry::new(String::from("2a9q")),  // Fight Club
                 letterboxd::ListUpdateEntry::new(String::from("bPI")),   // Melancholia
             ];
-        client.patch_list(&resp.data.id, &req, &token)
+        client.patch_list(&list.id, &req, &token)
     };
     let check_patch = |resp: letterboxd::ListUpdateResponse| {
         assert_eq!(resp.data.name, LIST_NAME);
@@ -96,6 +98,8 @@ fn list() {
 
     core.run(
         do_create
+            .and_then(do_print)
+            .and_then(do_find)
             .and_then(do_print)
             .and_then(do_patch)
             .and_then(do_print)

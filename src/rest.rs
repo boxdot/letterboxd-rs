@@ -37,7 +37,7 @@ impl Client {
     GET!(lists, "lists", defs::ListsRequest, defs::ListsResponse);
     POST!(post_list, "lists", defs::ListCreationRequest, defs::ListCreateResponse);
 
-    GET!(get_list, ("list/{}", id: &str), defs::EmptyRequest, defs::List);
+    GET!(get_list, ("list/{}", id: &str), defs::List);
     PATCH!(patch_list, ("list/{}", id: &str), defs::ListUpdateRequest, defs::ListUpdateResponse);
     DELETE!(delete_list, ("list/{}", id: &str));
 
@@ -70,7 +70,6 @@ impl Client {
                 Err(Error::server_error(status_code, resp, uri))
             } else {
                 let json: defs::AccessToken = serde_json::from_slice(&chunk)?;
-                println!("{:?}", json);
                 Ok(json)
             })
         });

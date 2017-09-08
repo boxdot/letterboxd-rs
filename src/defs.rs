@@ -382,9 +382,6 @@ pub struct DiaryDetails {
     pub rewatch: bool,
 }
 
-#[derive(Serialize, Debug, Clone)]
-pub struct EmptyRequest {}
-
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
 struct Film {
