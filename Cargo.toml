@@ -2,6 +2,12 @@
 name = "letterboxd"
 version = "0.1.0"
 authors = ["boxdot <d@zerovolt.org>"]
+license = "MIT/Apache-2.0"
+description = "Letterboxd API provides access to data on the Letterboxd.com website"
+repository = "https://github.com/boxdot/letterboxd-rs"
+keywords = ["rest", "letterboxd"]
+categories = ["api-bindings"]
+readme = "README.md"
 
 [dependencies]
 futures = "0.1"
