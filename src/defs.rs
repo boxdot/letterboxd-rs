@@ -427,7 +427,7 @@ struct FilmAutocompleteRequest {
 }
 
 #[derive(Deserialize, Debug, Clone)]
-enum FilmAvailabilityService {
+pub enum FilmAvailabilityService {
     Amazon,
     AmazonVideo,
     AmazonPrime,
@@ -438,22 +438,22 @@ enum FilmAvailabilityService {
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-struct FilmAvailability {
+pub struct FilmAvailability {
     /// The service.
-    service: FilmAvailabilityService,
+    pub service: FilmAvailabilityService,
     /// The service’s name.
-    display_name: String,
+    pub display_name: String,
     /// The regional store for the service. Not all countries are supported on all services.
-    country: Country,
+    pub country: Country,
     /// The unique ID (if any) for the film on the store.
-    id: String,
+    pub id: String,
     /// The fully qualified URL for the film on this store.
-    url: String,
+    pub url: String,
 }
 
 // TODO: order
 #[derive(Deserialize, Debug, Clone)]
-enum Country {
+pub enum Country {
     AIA,
     ARE,
     ARG,
@@ -578,9 +578,9 @@ enum Country {
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-struct FilmAvailabilityResponse {
+pub struct FilmAvailabilityResponse {
     /// The list of stores where the film is available for streaming or purchasing, in order of preference. If the member has not specified their preferred stores for a service, the USA store will be assumed.
-    items: Vec<FilmAvailability>,
+    pub items: Option<Vec<FilmAvailability>>,
 }
 
 #[derive(Deserialize, Debug, Clone)]

@@ -126,7 +126,13 @@ impl Client {
         defs::Film
     );
 
-    //     /film/{id}/availability
+    GET!(
+        /// Get availability data about a film by ID.
+        film_availability,
+        ("film/{}/availability", id: &str),
+        defs::FilmAvailabilityResponse
+    );
+
     //     /film/{id}/me
     //     /film/{id}/members
     //     /film/{id}/report
