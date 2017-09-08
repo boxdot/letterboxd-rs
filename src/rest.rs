@@ -32,15 +32,13 @@ impl Client {
         }
     }
 
-    GET!(search, "search", defs::SearchRequest, defs::SearchResponse);
+    // auth
 
-    GET!(lists, "lists", defs::ListsRequest, defs::ListsResponse);
-    POST!(post_list, "lists", defs::ListCreationRequest, defs::ListCreateResponse);
+    //     /auth/forgotten-password-request
 
-    GET!(get_list, ("list/{}", id: &str), defs::List);
-    PATCH!(patch_list, ("list/{}", id: &str), defs::ListUpdateRequest, defs::ListUpdateResponse);
-    DELETE!(delete_list, ("list/{}", id: &str));
-
+    /// Use a member’s credentials to sign in and receive an authentication token.
+    ///
+    /// Use this function to generate or refresh an auth token. See Authentication for more details.
     pub fn auth(
         &self,
         username: &str,
@@ -75,6 +73,115 @@ impl Client {
         });
         Box::new(fut_resp)
     }
+
+    //     /auth/username-check
+
+    // comment
+
+    //     /comment/{id}
+    //     /comment/{id}/report
+
+    // contributor
+
+    //     /contributor/{id}
+    //     /contributor/{id}/contributions
+
+    // film
+
+    //     /films
+    //     /films/autocomplete
+    //     /films/film-services
+    //     /films/genres
+    //     /film/{id}
+    //     /film/{id}/availability
+    //     /film/{id}/me
+    //     /film/{id}/members
+    //     /film/{id}/report
+    //     /film/{id}/statistics
+
+    // list
+
+    GET!(
+        /// A cursored window over a list of lists.
+        ///
+        /// Use the ‘next’ cursor to move through the list.
+        lists,
+        "lists",
+        defs::ListsRequest,
+        defs::ListsResponse
+    );
+
+    POST!(
+        /// Create a list.
+        post_list,
+        "lists",
+        defs::ListCreationRequest,
+        defs::ListCreateResponse
+    );
+
+    GET!(
+        /// Get details of a list by ID.
+        get_list,
+        ("list/{}", id: &str),
+        defs::List
+    );
+
+    PATCH!(
+        /// Update a list by ID.
+        patch_list,
+        ("list/{}", id: &str),
+        defs::ListUpdateRequest,
+        defs::ListUpdateResponse
+    );
+
+    DELETE!(
+        /// Delete a list by ID.
+        delete_list,
+        ("list/{}", id: &str)
+    );
+
+    //     /list/{id}/comments
+    //     /list/{id}/entries
+    //     /list/{id}/me
+    //     /list/{id}/report
+    //     /list/{id}/statistics
+
+    // log-entry
+
+    //     /log-entries
+    //     /log-entry/{id}
+    //     /log-entry/{id}/comments
+    //     /log-entry/{id}/me
+    //     /log-entry/{id}/report
+    //     /log-entry/{id}/statistics
+
+    // me
+
+    //     /me
+    //     /me/validation-request
+
+    // member
+
+    //     /members
+    //     /members/pronouns
+    //     /members/register
+    //     /member/{id}
+    //     /member/{id}/activity
+    //     /member/{id}/list-tags
+    //     /member/{id}/list-tags-2
+    //     /member/{id}/log-entry-tags
+    //     /member/{id}/me
+    //     /member/{id}/report
+    //     /member/{id}/review-tags
+    //     /member/{id}/review-tags-2
+    //     /member/{id}/statistics
+    //     /member/{id}/watchlist
+
+    // search
+
+    GET!(search, "search", defs::SearchRequest, defs::SearchResponse);
+
+    // helper methods
 
     fn generate_signed_url(
         &self,

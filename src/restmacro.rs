@@ -1,6 +1,7 @@
 #[macro_export]
 macro_rules! GET {
-    ($func_name:ident, ($path:expr $(, $arg:ident:$T:ty)*), $ReqType:ty, $RespType:ty) => {
+    ($(#[$attr:meta])* $func_name:ident, ($path:expr $(, $arg:ident:$T:ty)*), $ReqType:ty, $RespType:ty) => {
+        $(#[$attr])*
         pub fn $func_name(
             &self $( , $arg: $T)*, request: &$ReqType, token: Option<&::defs::AccessToken>
         ) -> Box<::futures::Future<Item = $RespType, Error = ::error::Error>> {
@@ -42,10 +43,11 @@ macro_rules! GET {
             Box::new(fut_resp)
         }
     };
-    ($func_name:ident, $path:expr, $ReqType:ty, $RespType:ty) => {
-        GET!($func_name, ($path), $ReqType, $RespType);
+    ($(#[$attr:meta])* $func_name:ident, $path:expr, $ReqType:ty, $RespType:ty) => {
+        GET!($(#[$attr])* $func_name, ($path), $ReqType, $RespType);
     };
-    ($func_name:ident, ($path:expr $(, $arg:ident:$T:ty)*), $RespType:ty) => {
+    ($(#[$attr:meta])* $func_name:ident, ($path:expr $(, $arg:ident:$T:ty)*), $RespType:ty) => {
+        $(#[$attr])*
         pub fn $func_name(
             &self $( , $arg: $T)*, token: Option<&::defs::AccessToken>
         ) -> Box<::futures::Future<Item = $RespType, Error = ::error::Error>> {
@@ -87,14 +89,15 @@ macro_rules! GET {
             Box::new(fut_resp)
         }
     };
-    ($func_name:ident, $path:expr, $RespType:ty) => {
-        GET!($func_name, ($path), $RespType);
+    ($(#[$attr:meta])* $func_name:ident, $path:expr, $RespType:ty) => {
+        GET!($(#[$attr])* $func_name, ($path), $RespType);
     };
 }
 
 #[macro_export]
 macro_rules! POST {
-    ($func_name:ident, ($path:expr $(, $arg:ident:$T:ty)*), $ReqType:ty, $RespType:ty) => {
+    ($(#[$attr:meta])* $func_name:ident, ($path:expr $(, $arg:ident:$T:ty)*), $ReqType:ty, $RespType:ty) => {
+        $(#[$attr])*
         pub fn $func_name(
             &self $( , $arg: $T)*, request: &$ReqType, token: &::defs::AccessToken
         ) -> Box<::futures::Future<Item = $RespType, Error = Error>> {
@@ -139,15 +142,16 @@ macro_rules! POST {
             Box::new(fut_resp)
         }
     };
-    ($func_name:ident, $path:expr, $ReqType:ty, $RespType:ty) => {
-        POST!($func_name, ($path), $ReqType, $RespType);
+    ($(#[$attr:meta])* $func_name:ident, $path:expr, $ReqType:ty, $RespType:ty) => {
+        POST!($(#[$attr])* $func_name, ($path), $ReqType, $RespType);
     };
 }
 
 
 #[macro_export]
 macro_rules! PATCH {
-    ($func_name:ident, ($path:expr $(, $arg:ident:$T:ty)*), $ReqType:ty, $RespType:ty ) => {
+    ($(#[$attr:meta])* $func_name:ident, ($path:expr $(, $arg:ident:$T:ty)*), $ReqType:ty, $RespType:ty ) => {
+        $(#[$attr])*
         pub fn $func_name(
             &self $( , $arg: $T)*, request: &$ReqType, token: &::defs::AccessToken
         ) -> Box<::futures::Future<Item = $RespType, Error = Error>> {
@@ -191,14 +195,15 @@ macro_rules! PATCH {
             Box::new(fut_resp)
         }
     };
-    ($func_name:ident, $path:expr, $ReqType:ty, $RespType:ty) => {
-        PATCH!($func_name, ($path), $ReqType, $RespType);
+    ($(#[$attr:meta])* $func_name:ident, $path:expr, $ReqType:ty, $RespType:ty) => {
+        PATCH!($(#[$attr])* $func_name, ($path), $ReqType, $RespType);
     };
 }
 
 #[macro_export]
 macro_rules! DELETE {
-    ($func_name:ident, ($path:expr $(, $arg:ident:$T:ty)+)) => {
+    ($(#[$attr:meta])* $func_name:ident, ($path:expr $(, $arg:ident:$T:ty)+)) => {
+        $(#[$attr])*
         pub fn $func_name(
             &self $( , $arg: $T)*, token: &::defs::AccessToken
         ) -> Box<::futures::Future<Item = ::hyper::StatusCode, Error = ::error::Error>> {
