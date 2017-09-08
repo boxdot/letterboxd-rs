@@ -754,9 +754,9 @@ struct FilmRelationshipUpdateResponse {
 }
 
 #[derive(Deserialize, Debug, Clone)]
-struct FilmServicesResponse {
+pub struct FilmServicesResponse {
     // The list of film services.
-    items: Vec<Service>,
+    pub items: Vec<Service>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -2512,11 +2512,11 @@ pub enum SearchResultType {
 }
 
 #[derive(Deserialize, Debug, Clone)]
-struct Service {
+pub struct Service {
     /// The LID of the service.
-    id: String,
+    pub id: String,
     /// The name of the service.
-    name: String,
+    pub name: String,
 }
 
 #[derive(Deserialize, Debug, Clone)]

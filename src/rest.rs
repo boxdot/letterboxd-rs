@@ -100,7 +100,16 @@ impl Client {
         defs::FilmsResponse
     );
 
-    //     /films/film-services
+    GET!(
+        /// Get a list of services supported by the /films endpoint.
+        ///
+        /// Services are returned in alphabetical order. Some services are only available to paying
+        /// members, so results will vary based on the authenticated member’s status.
+        film_services,
+        "films/film-services",
+        defs::FilmServicesResponse
+    );
+
     //     /films/genres
     //     /film/{id}
     //     /film/{id}/availability
