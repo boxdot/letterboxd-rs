@@ -36,9 +36,11 @@ impl Client {
 
     //     /auth/forgotten-password-request
 
-    /// Use a member’s credentials to sign in and receive an authentication token.
+    /// Use a member’s credentials to sign in and receive an authentication
+    /// token.
     ///
-    /// Use this function to generate or refresh an auth token. See Authentication for more details.
+    /// Use this function to generate or refresh an auth token. See
+    /// Authentication for more details.
     pub fn auth(
         &self,
         username: &str,
@@ -90,10 +92,9 @@ impl Client {
 
     GET!(
         /// A cursored window over the list of films.
-        ///
-        /// Use the ‘next’ cursor to move through the list. The response will include the film
-        /// relationships for the signed-in member and the member indicated by the member LID if
-        /// specified.
+        // Use the ‘next’ cursor to move through the list. The response will include the film
+        // relationships for the signed-in member and the member indicated by the member LID if
+        // specified.
         films,
         "films",
         defs::FilmsRequest,
@@ -102,9 +103,8 @@ impl Client {
 
     GET!(
         /// Get a list of services supported by the /films endpoint.
-        ///
-        /// Services are returned in alphabetical order. Some services are only available to paying
-        /// members, so results will vary based on the authenticated member’s status.
+        // Services are returned in alphabetical order. Some services are only available to paying
+        // members, so results will vary based on the authenticated member’s status.
         film_services,
         "films/film-services",
         defs::FilmServicesResponse
@@ -112,8 +112,7 @@ impl Client {
 
     GET!(
         /// Get a list of genres supported by the `films` function.
-        ///
-        /// Genres are returned in alphabetical order.
+        // Genres are returned in alphabetical order.
         film_genres,
         "films/genres",
         defs::GenresResponse
@@ -169,8 +168,7 @@ impl Client {
 
     GET!(
         /// A cursored window over a list of lists.
-        ///
-        /// Use the ‘next’ cursor to move through the list.
+        // Use the ‘next’ cursor to move through the list.
         lists,
         "lists",
         defs::ListsRequest,
