@@ -690,9 +690,9 @@ struct FilmContributionsResponse {
 }
 
 #[derive(Deserialize, Debug, Clone)]
-struct FilmIdentifier {
+pub struct FilmIdentifier {
     /// The LID of the film.
-    id: String,
+    pub id: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -761,31 +761,31 @@ pub struct FilmServicesResponse {
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-struct FilmStatistics {
+pub struct FilmStatistics {
     /// The film for which statistics were requested.
-    film: FilmIdentifier,
+    pub film: FilmIdentifier,
     /// The number of watches, ratings, likes, etc. for the film.
-    counts: FilmStatisticsCounts,
+    pub counts: FilmStatisticsCounts,
     /// The weighted average rating of the film between 0.5 and 5.0. Will not be present if the film has not received sufficient ratings.
-    rating: Option<f32>,
+    pub rating: Option<f32>,
     /// A summary of the number of ratings at each increment between 0.5 and 5.0.
-    ratings_histogram: Vec<RatingsHistogramBar>,
+    pub ratings_histogram: Vec<RatingsHistogramBar>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
-struct FilmStatisticsCounts {
+pub struct FilmStatisticsCounts {
     /// The number of members who have watched the film.
-    watches: usize,
+    pub watches: usize,
     /// The number of members who have liked the film.
-    likes: usize,
+    pub likes: usize,
     /// The number of members who have rated the film.
-    ratings: usize,
+    pub ratings: usize,
     /// The number of members who have the film as one of their four favorites.
-    fans: usize,
+    pub fans: usize,
     /// The number of lists in which the film appears.
-    lists: usize,
+    pub lists: usize,
     /// The number of reviews for the film.
-    reviews: usize,
+    pub reviews: usize,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -2193,13 +2193,13 @@ struct PronounsResponse {
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct RatingsHistogramBar {
+pub struct RatingsHistogramBar {
     /// The rating increment between 0.5 and 5.0.
-    rating: f32,
+    pub rating: f32,
     /// The height of this rating increment’s entry in a unit-height histogram, normalized between 0.0 and 1.0. The increment(s) with the highest number of ratings will always return 1.0 (unless there are no ratings for the film).
-    normalized_weight: f32,
+    pub normalized_weight: f32,
     /// The number of ratings made at this increment.
-    count: usize,
+    pub count: usize,
 }
 
 #[derive(Serialize, Clone, Debug)]

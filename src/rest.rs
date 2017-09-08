@@ -157,7 +157,13 @@ impl Client {
     );
 
     //     /film/{id}/report
-    //     /film/{id}/statistics
+
+    GET!(
+        /// Get statistical data about a film by ID.
+        film_statistics,
+        ("film/{}/statistics", id: &str),
+        defs::FilmStatistics
+    );
 
     // list
 

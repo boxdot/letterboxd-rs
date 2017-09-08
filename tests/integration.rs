@@ -141,6 +141,20 @@ fn film_relationship() {
 
 #[test]
 #[ignore]
+fn film_statistics() {
+    let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
+    let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
+
+    let mut core = Core::new().unwrap();
+    let client = letterboxd::Client::new(&core.handle(), api_key, api_secret);
+
+    let do_get_film_stats = client.film_statistics("2a9q", None); // Fight Club
+
+    core.run(do_get_film_stats.and_then(do_print)).unwrap();
+}
+
+#[test]
+#[ignore]
 fn search() {
     let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
     let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
