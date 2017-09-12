@@ -9,9 +9,6 @@ keywords = ["rest", "letterboxd"]
 categories = ["api-bindings"]
 readme = "README.md"
 
-[features]
-without-auth = []
-
 [dependencies]
 futures = "0.1"
 hex = "0.2"
