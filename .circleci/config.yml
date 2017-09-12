@@ -33,6 +33,10 @@ jobs:
           name: Test
           command: cargo test
 
+      - run:
+          name: Test Integration
+          command: cargo test --test integration-no-auth -- --ignored
+
       - save_cache:
           key: rust-toolchain-{{ checksum "~/.rustup/settings.toml" }}
           paths:
