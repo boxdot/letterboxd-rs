@@ -27,11 +27,11 @@ jobs:
 
       - run:
           name: Build
-          command: cargo build
+          command: cargo build --features without-auth
 
       - run:
           name: Test
-          command: cargo test
+          command: cargo test --features without-auth
 
       - save_cache:
           key: rust-toolchain-{{ checksum "~/.rustup/settings.toml" }}

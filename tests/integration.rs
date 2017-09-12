@@ -30,7 +30,7 @@ where
 }
 
 #[test]
-#[ignore]
+#[cfg_attr(not(feature = "without-auth"), ignore)]
 fn films() {
     let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
     let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
@@ -46,7 +46,7 @@ fn films() {
 }
 
 #[test]
-#[ignore]
+#[cfg_attr(not(feature = "without-auth"), ignore)]
 fn film_services() {
     let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
     let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
@@ -60,7 +60,7 @@ fn film_services() {
 }
 
 #[test]
-#[ignore]
+#[cfg_attr(not(feature = "without-auth"), ignore)]
 fn film_genres() {
     let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
     let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
@@ -74,7 +74,7 @@ fn film_genres() {
 }
 
 #[test]
-#[ignore]
+#[cfg_attr(not(feature = "without-auth"), ignore)]
 fn film() {
     let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
     let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
@@ -93,7 +93,7 @@ fn film() {
 }
 
 #[test]
-#[ignore]
+#[cfg_attr(not(feature = "without-auth"), ignore)]
 fn film_availability() {
     let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
     let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
@@ -140,7 +140,7 @@ fn film_relationship() {
 }
 
 #[test]
-#[ignore]
+#[cfg_attr(not(feature = "without-auth"), ignore)]
 fn film_statistics() {
     let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
     let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
@@ -154,7 +154,7 @@ fn film_statistics() {
 }
 
 #[test]
-#[ignore]
+#[cfg_attr(not(feature = "without-auth"), ignore)]
 fn search() {
     let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
     let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
@@ -206,9 +206,9 @@ fn list() {
     let do_patch = |list: letterboxd::List| {
         let mut req = letterboxd::ListUpdateRequest::new(String::from(LIST_NAME));
         req.entries = vec![
-                letterboxd::ListUpdateEntry::new(String::from("2a9q")),  // Fight Club
-                letterboxd::ListUpdateEntry::new(String::from("bPI")),   // Melancholia
-            ];
+            letterboxd::ListUpdateEntry::new(String::from("2a9q")), // Fight Club
+            letterboxd::ListUpdateEntry::new(String::from("bPI")) /* Melancholia */,
+        ];
         client.patch_list(&list.id, &req, &token)
     };
     let check_patch = |resp: letterboxd::ListUpdateResponse| {
