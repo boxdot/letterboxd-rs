@@ -1,4 +1,4 @@
-# WIP: Letterboxd API for Rust [![CircleCI](https://circleci.com/gh/boxdot/letterboxd-rs/tree/master.svg?style=shield)](https://circleci.com/gh/boxdot/letterboxd-rs/tree/master)
+# Letterboxd API for Rust [![CircleCI](https://circleci.com/gh/boxdot/letterboxd-rs/tree/master.svg?style=shield)](https://circleci.com/gh/boxdot/letterboxd-rs/tree/master)
 
 Letterboxd API for access to data on the Letterboxd.com website in Rust.
 
