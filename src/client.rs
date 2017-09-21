@@ -205,8 +205,21 @@ impl Client {
     );
 
     //     /list/{id}/comments
+
     //     /list/{id}/entries
+
+    GET!(
+        /// Get entries for a list by ID.
+        list_entries,
+        ("list/{}/entries", id: &str),
+        defs::ListEntriesRequest,
+        defs::ListEntriesResponse
+    );
+
     //     /list/{id}/me
+
+
+
     //     /list/{id}/report
     //     /list/{id}/statistics
 
