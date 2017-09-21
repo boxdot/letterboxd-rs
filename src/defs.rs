@@ -1104,10 +1104,10 @@ pub struct List {
     pub tags2: Vec<Tag>,
     /// The third-party service or services to which this list can be shared.
     /// Only included if the authenticated member is the list’s owner.
-    pub can_share_on: Vec<ThirdPartyService>,
+    pub can_share_on: Option<Vec<ThirdPartyService>>,
     /// The third-party service or services to which this list has been shared.
     /// Only included if the authenticated member is the list’s owner.
-    pub shared_on: Vec<ThirdPartyService>,
+    pub shared_on: Option<Vec<ThirdPartyService>>,
     /// ISO 8601 format with UTC timezone, i.e. YYYY-MM-DDThh:mm:ssZ
     /// "1997-08-29T07:14:00Z"
     pub when_created: String,
@@ -1269,7 +1269,7 @@ impl ListCreationRequest {
 }
 
 #[derive(Serialize, Debug, Clone)]
-enum ListEntriesRequestSort {
+pub enum ListEntriesRequestSort {
     ListRanking,
     WhenAddedToList,
     RatingHighToLow,
@@ -1285,79 +1285,79 @@ enum ListEntriesRequestSort {
     FilmPopularityThisYear,
 }
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
-struct ListEntriesRequest {
+pub struct ListEntriesRequest {
     /// The pagination cursor.
-    cursor: Option<Cursor>,
+    pub cursor: Option<Cursor>,
     /// The number of items to include per page (default is 20, maximum is 100).
-    per_page: Option<usize>,
+    pub per_page: Option<usize>,
     /// The order in which the entries should be returned. Defaults to
     /// ListRanking, which is the order specified by the list owner.
-    sort: ListEntriesRequestSort,
+    pub sort: Option<ListEntriesRequestSort>,
     /// Specify the LID of a genre to limit films to those within the specified
     /// genre.
-    genre: String,
+    pub genre: Option<String>,
     /// Specify the starting year of a decade (must end in 0) to limit films to
     /// those released during the decade. 1990
-    decade: u16,
+    pub decade: Option<u16>,
     /// Specify a year to limit films to those released during that year. 1994
-    year: u16,
+    pub year: Option<u16>,
     /// Specify the ID of a supported service to limit films to those available
     /// from that service. The list of available services can be found by using
     /// the /films/film-services endpoint.
-    service: String,
+    pub service: Option<String>,
     /// Specify one or more values to limit the list of films accordingly.
     /// where=Watched&where=Released
     #[serde(rename = "where")]
-    where_film_status: FilmStatus,
+    pub where_film_status: Vec<FilmStatus>,
     /// Specify the LID of a member to limit the returned films according to
     /// the value set in memberRelationship.
-    member: String,
+    pub member: Option<String>,
     /// Must be used in conjunction with member. Defaults to Watched. Specify
     /// the type of relationship to limit the returned films accordingly.
-    member_relationship: FilmRelationshipType,
+    pub member_relationship: Option<FilmRelationshipType>,
     /// Must be used in conjunction with member. Defaults to None, which only
     /// returns films from the member’s account. Use Only to return films from
     /// the member’s friends, and All to return films from both the member and
     /// their friends.
-    include_friends: IncludeFriends,
+    pub include_friends: Option<IncludeFriends>,
     /// Specify a tag code to limit the returned films to those tagged
     /// accordingly.
-    tag_code: String,
+    pub tag_code: Option<String>,
     /// Must be used with tag. Specify the LID of a member to focus the tag
     /// filter on the member.
-    tagger: String,
+    pub tagger: Option<String>,
     /// Must be used in conjunction with tagger. Defaults to None, which
     /// filters tags set by the member. Use Only to filter tags set by the
     /// member’s friends, and All to filter tags set by both the member and
     /// their friends.
-    include_tagger_friends: IncludeFriends,
+    pub include_tagger_friends: Option<IncludeFriends>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
-struct ListEntriesResponse {
+pub struct ListEntriesResponse {
     ///     The cursor to the next page of results.
-    next: Option<Cursor>,
+    pub next: Option<Cursor>,
     // The list of entries.
-    items: Vec<ListEntry>,
+    pub items: Vec<ListEntry>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-struct ListEntry {
+pub struct ListEntry {
     /// The entry’s rank in the list, numbered from 1.
-    rank: usize,
+    pub rank: Option<usize>,
     /// The notes for the list entry in LBML. May contain the following HTML tags: `<br>` `<strong>` `<em>` `<b>` `<i>` `<a href="">` `<blockquote>`.
-    notes_lbml: String,
+    pub notes_lbml: Option<String>,
     /// Will be true if the member has indicated that the notes field contains
     /// plot spoilers for the film.
-    contains_spoilers: bool,
+    pub contains_spoilers: Option<bool>,
     /// The film for this entry. Includes a MemberFilmRelationship for the
     /// member who created the list.
-    film: FilmSummary,
+    pub film: FilmSummary,
     /// The notes for the list entry formatted as HTML.
-    notes: String,
+    pub notes: Option<String>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -3045,6 +3045,7 @@ struct WatchlistRequest {
     service: String,
     /// Specify one or more values to limit the list of films accordingly.
     /// where=Watched&where=Released
+    #[serde(rename = "where")]
     where_film_status: Vec<FilmStatus>,
     /// Specify the LID of a member to limit the returned films according to
     /// the value set in memberRelationship. The member and memberRelationship

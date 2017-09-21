@@ -19,7 +19,7 @@
 //! as the path portion of the entity’s shareable boxd.it link.
 //!
 //! For more information, cf. API docs at
-//! http://letterboxd-api.dev.cactuslab.com.
+//! http://api-docs.letterboxd.com
 //!
 //! # Example
 //! ```
