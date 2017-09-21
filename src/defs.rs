@@ -1104,10 +1104,10 @@ pub struct List {
     pub tags2: Vec<Tag>,
     /// The third-party service or services to which this list can be shared.
     /// Only included if the authenticated member is the list’s owner.
-    pub can_share_on: Vec<ThirdPartyService>,
+    pub can_share_on: Option<Vec<ThirdPartyService>>,
     /// The third-party service or services to which this list has been shared.
     /// Only included if the authenticated member is the list’s owner.
-    pub shared_on: Vec<ThirdPartyService>,
+    pub shared_on: Option<Vec<ThirdPartyService>>,
     /// ISO 8601 format with UTC timezone, i.e. YYYY-MM-DDThh:mm:ssZ
     /// "1997-08-29T07:14:00Z"
     pub when_created: String,

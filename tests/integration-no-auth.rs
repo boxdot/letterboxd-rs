@@ -121,6 +121,25 @@ fn film_statistics() {
 
 #[test]
 #[ignore]
+fn list() {
+    let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
+    let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
+
+    let mut core = Core::new().unwrap();
+    let client = letterboxd::Client::new(&core.handle(), api_key, api_secret);
+
+    let do_req = client.list("1dgps", None); // testing_list
+    let do_check = |list: letterboxd::List| {
+        assert_eq!(list.name, "testing_list");
+        Ok(list)
+    };
+
+    core.run(do_req.and_then(do_check).and_then(do_print))
+        .unwrap();
+}
+
+#[test]
+#[ignore]
 fn search() {
     let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
     let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
