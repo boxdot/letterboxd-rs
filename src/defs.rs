@@ -1335,6 +1335,27 @@ pub struct ListEntriesRequest {
     pub include_tagger_friends: Option<IncludeFriends>,
 }
 
+impl ListEntriesRequest {
+    pub fn new() -> Self {
+        Self {
+            cursor: None,
+            per_page: None,
+            sort: None,
+            genre: None,
+            decade: None,
+            year: None,
+            service: None,
+            where_film_status: Vec::new(),
+            member: None,
+            member_relationship: None,
+            include_friends: None,
+            tag_code: None,
+            tagger: None,
+            include_tagger_friends: None,
+        }
+    }
+}
+
 #[derive(Deserialize, Debug, Clone)]
 pub struct ListEntriesResponse {
     ///     The cursor to the next page of results.
