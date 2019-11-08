@@ -1,6 +1,6 @@
 use std::str;
 
-use futures::{Future, Stream, future};
+use futures::{future, Future, Stream};
 use hyper;
 use hyper_tls;
 use serde_json;
@@ -46,18 +46,21 @@ impl Client {
         username: &str,
         password: &str,
     ) -> Box<Future<Item = defs::AccessToken, Error = Error>> {
-        let body = format!("grant_type=password&username={}&password={}", username, password);
-        let uri: hyper::Uri =
-            match self.generate_signed_url(hyper::Method::Post, "auth/token", "", &body)
-                .parse() {
-                Ok(uri) => uri,
-                Err(err) => return Box::new(future::result(Err(Error::from(err)))),
-            };
+        let body = format!(
+            "grant_type=password&username={}&password={}",
+            username, password
+        );
+        let uri: hyper::Uri = match self
+            .generate_signed_url(hyper::Method::Post, "auth/token", "", &body)
+            .parse()
+        {
+            Ok(uri) => uri,
+            Err(err) => return Box::new(future::result(Err(Error::from(err)))),
+        };
 
         let mut req = hyper::Request::new(hyper::Method::Post, uri.clone());
-        req.headers_mut().set(
-            hyper::header::ContentType::form_url_encoded(),
-        );
+        req.headers_mut()
+            .set(hyper::header::ContentType::form_url_encoded());
         req.headers_mut().set(hyper::header::Accept::json());
         req.set_body(body);
 
@@ -65,12 +68,14 @@ impl Client {
         let fut_resp = req.and_then(move |resp| {
             let status_code = resp.status();
             let body = resp.body().concat2().from_err();
-            body.and_then(move |chunk| if status_code != hyper::StatusCode::Ok {
-                let resp = String::from(str::from_utf8(&chunk)?);
-                Err(Error::server_error(status_code, resp, uri))
-            } else {
-                let json: defs::AccessToken = serde_json::from_slice(&chunk)?;
-                Ok(json)
+            body.and_then(move |chunk| {
+                if status_code != hyper::StatusCode::Ok {
+                    let resp = String::from(str::from_utf8(&chunk)?);
+                    Err(Error::server_error(status_code, resp, uri))
+                } else {
+                    let json: defs::AccessToken = serde_json::from_slice(&chunk)?;
+                    Ok(json)
+                }
             })
         });
         Box::new(fut_resp)
@@ -218,8 +223,6 @@ impl Client {
 
     //     /list/{id}/me
 
-
-
     //     /list/{id}/report
     //     /list/{id}/statistics
 
@@ -298,6 +301,10 @@ impl Client {
         );
 
         let salted_msg = format!("{}\0{}\0{}", method, url, body);
-        format!("{}&signature={}", url, helper::hmac_sha256(&self.shared_secret, &salted_msg))
+        format!(
+            "{}&signature={}",
+            url,
+            helper::hmac_sha256(&self.shared_secret, &salted_msg)
+        )
     }
 }
