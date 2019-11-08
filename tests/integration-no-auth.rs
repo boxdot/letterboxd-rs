@@ -1,7 +1,3 @@
-extern crate futures;
-extern crate letterboxd;
-extern crate tokio_core;
-
 use std::env;
 use std::fmt;
 use std::process;

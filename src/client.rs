@@ -1,22 +1,16 @@
-use std::str;
+use crate::defs;
+use crate::error::Error;
+use crate::helper;
 
 use futures::{future, Future, Stream};
 use hyper::{
-    self,
     header::{self, HeaderValue},
     Body,
 };
-use hyper_tls;
-use serde_json;
 
-use uuid;
-
-use defs;
-use error::Error;
-use helper;
+use std::str;
 
 pub struct Client {
-    url: String,
     key: String,
     shared_secret: String,
     // state
@@ -24,11 +18,12 @@ pub struct Client {
 }
 
 impl Client {
+    const API_BASE_URL: &'static str = "https://api.letterboxd.com/api/v0/";
+
     pub fn new(api_key: String, api_shared_secret: String) -> Client {
         let https = hyper_tls::HttpsConnector::new(4).unwrap();
         let hyper_client = hyper::Client::builder().build::<_, hyper::Body>(https);
         Client {
-            url: String::from("https://api.letterboxd.com/api/v0/"),
             key: api_key,
             shared_secret: api_shared_secret,
             hyper_client,
@@ -297,7 +292,7 @@ impl Client {
     ) -> String {
         let url = format!(
             "{}{}?apikey={}&nonce={}&timestamp={}{}{}",
-            self.url,
+            Self::API_BASE_URL,
             endpoint,
             self.key,
             nonce,

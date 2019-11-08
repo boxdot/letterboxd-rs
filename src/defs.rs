@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 //! This module contains the transcript of types from Definitions section of
 //! the Letterboxd API:
 //!
@@ -8,8 +10,7 @@
 //! values. Further, only the types that are in the API implementation are
 //! public.
 
-// TODO: remove
-#![allow(dead_code)]
+use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
