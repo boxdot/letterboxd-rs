@@ -3,8 +3,8 @@ macro_rules! GET {
     ($(#[$attr:meta])* $func_name:ident, ($path:expr $(, $arg:ident:$T:ty)*), $ReqType:ty, $RespType:ty) => {
         $(#[$attr])*
         pub fn $func_name(
-            &self $( , $arg: $T)*, request: &$ReqType, token: Option<&::defs::AccessToken>
-        ) -> Box<dyn (::futures::Future<Item = $RespType, Error = ::error::Error>)> {
+            &self $( , $arg: $T)*, request: &$ReqType, token: Option<&crate::defs::AccessToken>
+        ) -> Box<dyn (::futures::Future<Item = $RespType, Error = crate::error::Error>)> {
 
             use ::hyper::header::{self, HeaderValue};
 
@@ -53,8 +53,8 @@ macro_rules! GET {
     ($(#[$attr:meta])* $func_name:ident, ($path:expr $(, $arg:ident:$T:ty)*), $RespType:ty) => {
         $(#[$attr])*
         pub fn $func_name(
-            &self $( , $arg: $T)*, token: Option<&::defs::AccessToken>
-        ) -> Box<dyn (::futures::Future<Item = $RespType, Error = ::error::Error>)> {
+            &self $( , $arg: $T)*, token: Option<&crate::defs::AccessToken>
+        ) -> Box<dyn (::futures::Future<Item = $RespType, Error = crate::error::Error>)> {
 
             use ::hyper::header::{self, HeaderValue};
 
@@ -107,7 +107,7 @@ macro_rules! POST {
     ($(#[$attr:meta])* $func_name:ident, ($path:expr $(, $arg:ident:$T:ty)*), $ReqType:ty, $RespType:ty) => {
         $(#[$attr])*
         pub fn $func_name(
-            &self $( , $arg: $T)*, request: &$ReqType, token: &::defs::AccessToken
+            &self $( , $arg: $T)*, request: &$ReqType, token: &crate::defs::AccessToken
         ) -> Box<dyn (::futures::Future<Item = $RespType, Error = Error>)> {
 
             use ::hyper::header::{self, HeaderValue};
@@ -164,7 +164,7 @@ macro_rules! PATCH {
     ($(#[$attr:meta])* $func_name:ident, ($path:expr $(, $arg:ident:$T:ty)*), $ReqType:ty, $RespType:ty ) => {
         $(#[$attr])*
         pub fn $func_name(
-            &self $( , $arg: $T)*, request: &$ReqType, token: &::defs::AccessToken
+            &self $( , $arg: $T)*, request: &$ReqType, token: &crate::defs::AccessToken
         ) -> Box<dyn (::futures::Future<Item = $RespType, Error = Error>)> {
 
             use ::hyper::header::{self, HeaderValue};
@@ -220,8 +220,8 @@ macro_rules! DELETE {
     ($(#[$attr:meta])* $func_name:ident, ($path:expr $(, $arg:ident:$T:ty)+)) => {
         $(#[$attr])*
         pub fn $func_name(
-            &self $( , $arg: $T)*, token: &::defs::AccessToken
-        ) -> Box<dyn (::futures::Future<Item = ::hyper::StatusCode, Error = ::error::Error>)> {
+            &self $( , $arg: $T)*, token: &crate::defs::AccessToken
+        ) -> Box<dyn (::futures::Future<Item = ::hyper::StatusCode, Error = crate::error::Error>)> {
 
             use ::hyper::header::{self, HeaderValue};
 
