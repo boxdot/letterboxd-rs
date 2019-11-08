@@ -21,5 +21,5 @@ pub fn now() -> u64 {
 pub fn hmac_sha256(secret: &str, msg: &str) -> String {
     let mut hmac = hmac::Hmac::new(sha2::Sha256::new(), secret.as_bytes());
     hmac.input(msg.as_bytes());
-    hmac.result().code().to_hex()
+    hmac.result().code().encode_hex()
 }
