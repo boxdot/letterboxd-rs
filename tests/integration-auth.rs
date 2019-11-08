@@ -37,8 +37,9 @@ fn film_relationship() {
     let username = env::var("LB_USERNAME").unwrap_or_else(usage_and_exit);
     let password = env::var("LB_PASSWORD").unwrap_or_else(usage_and_exit);
 
+    let client = letterboxd::Client::new(api_key, api_secret);
+
     let mut core = Core::new().unwrap();
-    let client = letterboxd::Client::new(&core.handle(), api_key, api_secret);
 
     let get_token = client.auth(&username, &password);
     let token = core.run(get_token).unwrap();
@@ -69,8 +70,9 @@ fn list() {
     let username = env::var("LB_USERNAME").unwrap_or_else(usage_and_exit);
     let password = env::var("LB_PASSWORD").unwrap_or_else(usage_and_exit);
 
+    let client = letterboxd::Client::new(api_key, api_secret);
+
     let mut core = Core::new().unwrap();
-    let client = letterboxd::Client::new(&core.handle(), api_key, api_secret);
 
     let get_token = client.auth(&username, &password);
     let token = core.run(get_token).unwrap();
@@ -82,14 +84,16 @@ fn list() {
 
     const LIST_NAME: &'static str = "some_new_list";
 
-    let do_create =
-        client.post_list(&letterboxd::ListCreationRequest::new(String::from(LIST_NAME)), &token);
+    let do_create = client.post_list(
+        &letterboxd::ListCreationRequest::new(String::from(LIST_NAME)),
+        &token,
+    );
     let do_find = |resp: letterboxd::ListCreateResponse| client.list(&resp.data.id, Some(&token));
     let do_patch = |list: letterboxd::List| {
         let mut req = letterboxd::ListUpdateRequest::new(String::from(LIST_NAME));
         req.entries = vec![
             letterboxd::ListUpdateEntry::new(String::from("2a9q")), // Fight Club
-            letterboxd::ListUpdateEntry::new(String::from("bPI")) /* Melancholia */,
+            letterboxd::ListUpdateEntry::new(String::from("bPI")),  /* Melancholia */
         ];
         client.patch_list(&list.id, &req, &token)
     };
@@ -110,5 +114,6 @@ fn list() {
             .and_then(do_print)
             .and_then(check_patch)
             .and_then(do_delete),
-    ).unwrap();
+    )
+    .unwrap();
 }

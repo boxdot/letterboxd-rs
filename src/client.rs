@@ -1,10 +1,14 @@
 use std::str;
 
-use futures::{Future, Stream, future};
-use hyper;
+use futures::{future, Future, Stream};
+use hyper::{
+    self,
+    header::{self, HeaderValue},
+    Body,
+};
 use hyper_tls;
 use serde_json;
-use tokio_core::reactor::Handle;
+
 use uuid;
 
 use defs;
@@ -20,15 +24,14 @@ pub struct Client {
 }
 
 impl Client {
-    pub fn new(handle: &Handle, api_key: String, api_shared_secret: String) -> Client {
-        let hyper_client = hyper::Client::configure()
-            .connector(hyper_tls::HttpsConnector::new(4, handle).unwrap())
-            .build(handle);
+    pub fn new(api_key: String, api_shared_secret: String) -> Client {
+        let https = hyper_tls::HttpsConnector::new(4).unwrap();
+        let hyper_client = hyper::Client::builder().build::<_, hyper::Body>(https);
         Client {
-            url: String::from("https://letterboxd.com/api/v0/"),
+            url: String::from("https://api.letterboxd.com/api/v0/"),
             key: api_key,
             shared_secret: api_shared_secret,
-            hyper_client: hyper_client,
+            hyper_client,
         }
     }
 
@@ -45,32 +48,40 @@ impl Client {
         &self,
         username: &str,
         password: &str,
-    ) -> Box<Future<Item = defs::AccessToken, Error = Error>> {
-        let body = format!("grant_type=password&username={}&password={}", username, password);
-        let uri: hyper::Uri =
-            match self.generate_signed_url(hyper::Method::Post, "auth/token", "", &body)
-                .parse() {
-                Ok(uri) => uri,
-                Err(err) => return Box::new(future::result(Err(Error::from(err)))),
-            };
-
-        let mut req = hyper::Request::new(hyper::Method::Post, uri.clone());
-        req.headers_mut().set(
-            hyper::header::ContentType::form_url_encoded(),
+    ) -> Box<dyn Future<Item = defs::AccessToken, Error = Error>> {
+        let body = format!(
+            "grant_type=password&username={}&password={}",
+            username, password
         );
-        req.headers_mut().set(hyper::header::Accept::json());
-        req.set_body(body);
+        let uri: hyper::Uri = match self
+            .generate_signed_url(hyper::Method::POST, "auth/token", "", &body)
+            .parse()
+        {
+            Ok(uri) => uri,
+            Err(err) => return Box::new(future::result(Err(Error::from(err)))),
+        };
+
+        let req = hyper::Request::post(uri.clone())
+            .header(
+                header::CONTENT_TYPE,
+                HeaderValue::from_static("application/x-www-form-urlencoded"),
+            )
+            .header(header::ACCEPT, HeaderValue::from_static("application/json"))
+            .body(Body::from(body))
+            .unwrap();
 
         let req = self.hyper_client.request(req).from_err();
         let fut_resp = req.and_then(move |resp| {
             let status_code = resp.status();
-            let body = resp.body().concat2().from_err();
-            body.and_then(move |chunk| if status_code != hyper::StatusCode::Ok {
-                let resp = String::from(str::from_utf8(&chunk)?);
-                Err(Error::server_error(status_code, resp, uri))
-            } else {
-                let json: defs::AccessToken = serde_json::from_slice(&chunk)?;
-                Ok(json)
+            let body = resp.into_body().concat2().from_err();
+            body.and_then(move |chunk| {
+                if status_code != hyper::StatusCode::OK {
+                    let resp = String::from(str::from_utf8(&chunk)?);
+                    Err(Error::server_error(status_code, resp, uri))
+                } else {
+                    let json: defs::AccessToken = serde_json::from_slice(&chunk)?;
+                    Ok(json)
+                }
             })
         });
         Box::new(fut_resp)
@@ -218,8 +229,6 @@ impl Client {
 
     //     /list/{id}/me
 
-
-
     //     /list/{id}/report
     //     /list/{id}/statistics
 
@@ -298,6 +307,10 @@ impl Client {
         );
 
         let salted_msg = format!("{}\0{}\0{}", method, url, body);
-        format!("{}&signature={}", url, helper::hmac_sha256(&self.shared_secret, &salted_msg))
+        format!(
+            "{}&signature={}",
+            url,
+            helper::hmac_sha256(&self.shared_secret, &salted_msg)
+        )
     }
 }

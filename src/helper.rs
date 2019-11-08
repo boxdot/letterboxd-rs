@@ -12,9 +12,9 @@ pub fn nonce() -> uuid::Uuid {
 
 pub fn now() -> u64 {
     let now = time::SystemTime::now();
-    let dur = now.duration_since(time::UNIX_EPOCH).expect(
-        "SystemTime::duration_since failed",
-    );
+    let dur = now
+        .duration_since(time::UNIX_EPOCH)
+        .expect("SystemTime::duration_since failed");
     dur.as_secs()
 }
 

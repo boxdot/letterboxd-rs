@@ -4,10 +4,12 @@ macro_rules! GET {
         $(#[$attr])*
         pub fn $func_name(
             &self $( , $arg: $T)*, request: &$ReqType, token: Option<&::defs::AccessToken>
-        ) -> Box<::futures::Future<Item = $RespType, Error = ::error::Error>> {
+        ) -> Box<dyn (::futures::Future<Item = $RespType, Error = ::error::Error>)> {
+
+            use ::hyper::header::{self, HeaderValue};
 
             let uri = self.generate_signed_url(
-                ::hyper::Method::Get,
+                ::hyper::Method::GET,
                 &format!($path $(, $arg)*),
                 &::serde_url_params::to_string(request).unwrap(), // TODO: Error handling
                 "",
@@ -19,19 +21,21 @@ macro_rules! GET {
                 }
             };
 
-            let mut req = ::hyper::Request::new(hyper::Method::Get, uri.clone());
-            req.headers_mut().set(::hyper::header::ContentType::json());
-            req.headers_mut().set(::hyper::header::ContentLength(0));
+            let mut req = ::hyper::Request::get(uri.clone());
+            req.header(header::CONTENT_TYPE, HeaderValue::from_static("application/json"))
+                .header(header::CONTENT_LENGTH, HeaderValue::from_static("0"));
             if let Some(token) = token {
-                req.headers_mut().set(::hyper::header::Authorization(
-                    ::hyper::header::Bearer { token: token.access_token.clone() },
-                ));
+                req.header(
+                    header::AUTHORIZATION,
+                    HeaderValue::from_str(&format!("Bearer {}", token.access_token)).unwrap()
+                );
             };
+            let req = req.body(::hyper::Body::empty()).unwrap();
 
             let do_req = self.hyper_client.request(req).from_err();
             let fut_resp = do_req.and_then(move |resp| {
                 let status_code = resp.status();
-                let body = resp.body().concat2().from_err();
+                let body = resp.into_body().concat2().from_err();
                 body.and_then(move |chunk| if !status_code.is_success() {
                     let resp = String::from(::std::str::from_utf8(&chunk)?);
                     Err(Error::server_error(status_code, resp, uri))
@@ -50,10 +54,12 @@ macro_rules! GET {
         $(#[$attr])*
         pub fn $func_name(
             &self $( , $arg: $T)*, token: Option<&::defs::AccessToken>
-        ) -> Box<::futures::Future<Item = $RespType, Error = ::error::Error>> {
+        ) -> Box<dyn (::futures::Future<Item = $RespType, Error = ::error::Error>)> {
+
+            use ::hyper::header::{self, HeaderValue};
 
             let uri = self.generate_signed_url(
-                ::hyper::Method::Get,
+                ::hyper::Method::GET,
                 &format!($path $(, $arg)*),
                 "",
                 "",
@@ -65,19 +71,21 @@ macro_rules! GET {
                 }
             };
 
-            let mut req = ::hyper::Request::new(hyper::Method::Get, uri.clone());
-            req.headers_mut().set(::hyper::header::ContentType::json());
-            req.headers_mut().set(::hyper::header::ContentLength(0));
+            let mut req = ::hyper::Request::get(uri.clone());
+            req.header(header::CONTENT_TYPE, HeaderValue::from_static("application/json"))
+                .header(header::CONTENT_LENGTH, HeaderValue::from_static("0"));
             if let Some(token) = token {
-                req.headers_mut().set(::hyper::header::Authorization(
-                    ::hyper::header::Bearer { token: token.access_token.clone() },
-                ));
+                req.header(
+                    header::AUTHORIZATION,
+                    HeaderValue::from_str(&format!("Bearer {}", token.access_token)).unwrap()
+                );
             };
+            let req = req.body(::hyper::Body::empty()).unwrap();
 
             let do_req = self.hyper_client.request(req).from_err();
             let fut_resp = do_req.and_then(move |resp| {
                 let status_code = resp.status();
-                let body = resp.body().concat2().from_err();
+                let body = resp.into_body().concat2().from_err();
                 body.and_then(move |chunk| if !status_code.is_success() {
                     let resp = String::from(::std::str::from_utf8(&chunk)?);
                     Err(Error::server_error(status_code, resp, uri))
@@ -100,7 +108,9 @@ macro_rules! POST {
         $(#[$attr])*
         pub fn $func_name(
             &self $( , $arg: $T)*, request: &$ReqType, token: &::defs::AccessToken
-        ) -> Box<::futures::Future<Item = $RespType, Error = Error>> {
+        ) -> Box<dyn (::futures::Future<Item = $RespType, Error = Error>)> {
+
+            use ::hyper::header::{self, HeaderValue};
 
             let body = match ::serde_json::to_string(request) {
                 Ok(body) => body,
@@ -108,7 +118,7 @@ macro_rules! POST {
             };
             println!("{:?}", body);
             let uri: hyper::Uri = match self.generate_signed_url(
-                ::hyper::Method::Post,
+                ::hyper::Method::POST,
                 &format!($path $(, $arg)*),
                 "",
                 &body,
@@ -117,20 +127,22 @@ macro_rules! POST {
                 Err(err) => return Box::new(::futures::future::result(Err(Error::from(err)))),
             };
 
-            let mut req = hyper::Request::new(::hyper::Method::Post, uri.clone());
-            req.headers_mut().set(::hyper::header::ContentType::json());
-            req.headers_mut().set(::hyper::header::ContentLength(
-                body.len() as u64,
-            ));
-            req.headers_mut().set(::hyper::header::Authorization(
-                ::hyper::header::Bearer { token: token.access_token.clone() },
-            ));
-            req.set_body(body);
+            let req = ::hyper::Request::post(uri.clone())
+                .header(header::CONTENT_TYPE, HeaderValue::from_static("application/json"))
+                .header(
+                    header::CONTENT_LENGTH,
+                    HeaderValue::from_str(&format!("{}", body.len())).unwrap())
+                .header(
+                    header::AUTHORIZATION,
+                    HeaderValue::from_str(&format!("Bearer {}", token.access_token)).unwrap()
+                )
+                .body(::hyper::Body::from(body))
+                .unwrap();
 
             let do_req = self.hyper_client.request(req).from_err();
             let fut_resp = do_req.and_then(move |resp| {
                 let status_code = resp.status();
-                let body = resp.body().concat2().from_err();
+                let body = resp.into_body().concat2().from_err();
                 body.and_then(move |chunk| if !status_code.is_success() {
                     let resp = String::from(::std::str::from_utf8(&chunk)?);
                     Err(Error::server_error(status_code, resp, uri))
@@ -147,21 +159,22 @@ macro_rules! POST {
     };
 }
 
-
 #[macro_export]
 macro_rules! PATCH {
     ($(#[$attr:meta])* $func_name:ident, ($path:expr $(, $arg:ident:$T:ty)*), $ReqType:ty, $RespType:ty ) => {
         $(#[$attr])*
         pub fn $func_name(
             &self $( , $arg: $T)*, request: &$ReqType, token: &::defs::AccessToken
-        ) -> Box<::futures::Future<Item = $RespType, Error = Error>> {
+        ) -> Box<dyn (::futures::Future<Item = $RespType, Error = Error>)> {
+
+            use ::hyper::header::{self, HeaderValue};
 
             let body = match ::serde_json::to_string(request) {
                 Ok(body) => body,
                 Err(err) => return Box::new(::futures::future::result(Err(Error::from(err)))),
             };
             let uri: hyper::Uri = match self.generate_signed_url(
-                ::hyper::Method::Patch,
+                ::hyper::Method::PATCH,
                 &format!($path $(, $arg)*),
                 "",
                 &body,
@@ -170,20 +183,22 @@ macro_rules! PATCH {
                 Err(err) => return Box::new(::futures::future::result(Err(Error::from(err)))),
             };
 
-            let mut req = hyper::Request::new(::hyper::Method::Patch, uri.clone());
-            req.headers_mut().set(::hyper::header::ContentType::json());
-            req.headers_mut().set(::hyper::header::ContentLength(
-                body.len() as u64,
-            ));
-            req.headers_mut().set(::hyper::header::Authorization(
-                ::hyper::header::Bearer { token: token.access_token.clone() },
-            ));
-            req.set_body(body);
+            let req = ::hyper::Request::patch(uri.clone())
+                .header(header::CONTENT_TYPE, HeaderValue::from_static("application/json"))
+                .header(
+                    header::CONTENT_LENGTH,
+                    HeaderValue::from_str(&format!("{}", body.len())).unwrap())
+                .header(
+                    header::AUTHORIZATION,
+                    HeaderValue::from_str(&format!("Bearer {}", token.access_token)).unwrap()
+                )
+                .body(::hyper::Body::from(body))
+                .unwrap();
 
             let do_req = self.hyper_client.request(req).from_err();
             let fut_resp = do_req.and_then(move |resp| {
                 let status_code = resp.status();
-                let body = resp.body().concat2().from_err();
+                let body = resp.into_body().concat2().from_err();
                 body.and_then(move |chunk| if !status_code.is_success() {
                     let resp = String::from(::std::str::from_utf8(&chunk)?);
                     Err(Error::server_error(status_code, resp, uri))
@@ -206,10 +221,12 @@ macro_rules! DELETE {
         $(#[$attr])*
         pub fn $func_name(
             &self $( , $arg: $T)*, token: &::defs::AccessToken
-        ) -> Box<::futures::Future<Item = ::hyper::StatusCode, Error = ::error::Error>> {
+        ) -> Box<dyn (::futures::Future<Item = ::hyper::StatusCode, Error = ::error::Error>)> {
+
+            use ::hyper::header::{self, HeaderValue};
 
             let uri = self.generate_signed_url(
-                ::hyper::Method::Delete,
+                ::hyper::Method::DELETE,
                 &format!($path $(, $arg)*),
                 "",
                 "",
@@ -221,12 +238,15 @@ macro_rules! DELETE {
                 }
             };
 
-            let mut req = ::hyper::Request::new(hyper::Method::Delete, uri.clone());
-            req.headers_mut().set(::hyper::header::ContentType::json());
-            req.headers_mut().set(::hyper::header::ContentLength(0));
-            req.headers_mut().set(::hyper::header::Authorization(
-                ::hyper::header::Bearer { token: token.access_token.clone() },
-            ));
+            let req = ::hyper::Request::delete(uri.clone())
+                .header(header::CONTENT_TYPE, HeaderValue::from_static("application/json"))
+                .header(header::CONTENT_LENGTH, HeaderValue::from_static("0"))
+                .header(
+                    header::AUTHORIZATION,
+                    HeaderValue::from_str(&format!("Bearer {}", token.access_token)).unwrap()
+                )
+                .body(::hyper::Body::empty())
+                .unwrap();
 
             let do_req = self.hyper_client.request(req).from_err();
             let fut_resp = do_req.and_then(move |resp| {

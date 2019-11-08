@@ -5,8 +5,7 @@
 ## Example
 
 ```rust
-let mut core = Core::new().unwrap();
-let client = letterboxd::Client::new(&core.handle(), API_KEY, API_SECRET);
+let client = letterboxd::Client::new(API_KEY, API_SECRET);
 
 let mut req = letterboxd::SearchRequest::new(String::from("Fight Club"));
 let do_search = client.search(&req, None /* no auth token needed */);
@@ -16,6 +15,7 @@ let do_print = |resp| {
     Ok(())
 };
 
+let mut core = tokio::Core::new().unwrap();
 core.run(do_search.and_then(do_print)).unwrap();
 ```
 

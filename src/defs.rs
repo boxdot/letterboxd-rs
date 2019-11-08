@@ -204,15 +204,27 @@ pub enum AbstractSearchItem {
         /// Contributor Details of the contributor.
         contributor: Contributor,
     },
-    FilmSearchItem { score: f32, film: FilmSummary },
-    ListSearchItem { score: f32, list: ListSummary },
-    MemberSearchItem { score: f32, member: MemberSummary },
+    FilmSearchItem {
+        score: f32,
+        film: FilmSummary,
+    },
+    ListSearchItem {
+        score: f32,
+        list: ListSummary,
+    },
+    MemberSearchItem {
+        score: f32,
+        member: MemberSummary,
+    },
     ReviewSearchItem {
         score: f32,
         /// Details of the review.
         review: LogEntry,
     },
-    TagSearchItem { score: f32, tag: String },
+    TagSearchItem {
+        score: f32,
+        tag: String,
+    },
 }
 
 #[derive(Deserialize, Debug, Clone)]
@@ -1433,7 +1445,6 @@ struct ListRelationshipUpdateResponse {
     /// A list of messages the API client should show to the user.
     messages: Vec<ListRelationshipUpdateMessage>,
 }
-
 
 #[derive(Deserialize, Debug, Clone)]
 struct ListStatistics {

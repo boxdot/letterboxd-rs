@@ -1,4 +1,3 @@
-use std::error::Error as StdError;
 use std::fmt;
 
 use hyper::StatusCode;
@@ -25,10 +24,10 @@ impl Error {
 
 #[derive(Debug)]
 pub enum Kind {
-    Http(::hyper::Error),
-    Uri(::hyper::error::UriError),
-    Json(::serde_json::Error),
-    Utf8Error(::std::str::Utf8Error),
+    Http(hyper::Error),
+    Uri(hyper::http::uri::InvalidUri),
+    Json(serde_json::Error),
+    Utf8Error(std::str::Utf8Error),
     ServerError(StatusCode, String /* response */),
 }
 
@@ -50,59 +49,39 @@ impl fmt::Display for Error {
     }
 }
 
-impl StdError for Error {
-    fn description(&self) -> &str {
-        match self.kind {
-            Kind::Http(ref e) => e.description(),
-            Kind::Uri(ref e) => e.description(),
-            Kind::Json(ref e) => e.description(),
-            Kind::Utf8Error(ref e) => e.description(),
-            Kind::ServerError(_, _) => "Server Error",
-        }
-    }
+impl std::error::Error for Error {}
 
-    fn cause(&self) -> Option<&StdError> {
-        match self.kind {
-            Kind::Http(ref e) => e.cause(),
-            Kind::Uri(ref e) => e.cause(),
-            Kind::Json(ref e) => e.cause(),
-            Kind::Utf8Error(ref e) => e.cause(),
-            Kind::ServerError(_, _) => None,
+impl From<hyper::http::uri::InvalidUri> for Error {
+    fn from(err: hyper::http::uri::InvalidUri) -> Self {
+        Self {
+            kind: Kind::Uri(err),
+            url: None,
         }
     }
 }
 
-impl From<::hyper::Error> for Kind {
-    fn from(err: ::hyper::Error) -> Self {
-        Kind::Http(err)
+impl From<hyper::Error> for Error {
+    fn from(err: hyper::Error) -> Self {
+        Self {
+            kind: Kind::Http(err),
+            url: None,
+        }
     }
 }
 
-impl From<::hyper::error::UriError> for Kind {
-    fn from(err: ::hyper::error::UriError) -> Self {
-        Kind::Uri(err)
+impl From<serde_json::Error> for Error {
+    fn from(err: serde_json::Error) -> Self {
+        Self {
+            kind: Kind::Json(err),
+            url: None,
+        }
     }
 }
 
-impl From<::serde_json::Error> for Kind {
-    fn from(err: ::serde_json::Error) -> Self {
-        Kind::Json(err)
-    }
-}
-
-impl From<::std::str::Utf8Error> for Kind {
-    fn from(err: ::std::str::Utf8Error) -> Self {
-        Kind::Utf8Error(err)
-    }
-}
-
-impl<E> From<E> for Error
-where
-    Kind: From<E>,
-{
-    fn from(err: E) -> Self {
-        Error {
-            kind: Kind::from(err),
+impl From<std::str::Utf8Error> for Error {
+    fn from(err: std::str::Utf8Error) -> Self {
+        Self {
+            kind: Kind::Utf8Error(err),
             url: None,
         }
     }
