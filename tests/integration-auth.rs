@@ -37,8 +37,9 @@ fn film_relationship() {
     let username = env::var("LB_USERNAME").unwrap_or_else(usage_and_exit);
     let password = env::var("LB_PASSWORD").unwrap_or_else(usage_and_exit);
 
+    let client = letterboxd::Client::new(api_key, api_secret);
+
     let mut core = Core::new().unwrap();
-    let client = letterboxd::Client::new(&core.handle(), api_key, api_secret);
 
     let get_token = client.auth(&username, &password);
     let token = core.run(get_token).unwrap();
@@ -69,8 +70,9 @@ fn list() {
     let username = env::var("LB_USERNAME").unwrap_or_else(usage_and_exit);
     let password = env::var("LB_PASSWORD").unwrap_or_else(usage_and_exit);
 
+    let client = letterboxd::Client::new(api_key, api_secret);
+
     let mut core = Core::new().unwrap();
-    let client = letterboxd::Client::new(&core.handle(), api_key, api_secret);
 
     let get_token = client.auth(&username, &password);
     let token = core.run(get_token).unwrap();

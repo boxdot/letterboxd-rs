@@ -37,8 +37,7 @@
 //! #   let api_key = String::from("some_key");
 //! #   let api_secret = String::from("some_secret");
 //! #
-//! let mut core = Core::new().unwrap();
-//! let client = letterboxd::Client::new(&core.handle(), api_key, api_secret);
+//! let client = letterboxd::Client::new(api_key, api_secret);
 //!
 //! let get_token = client.auth(&USERNAME, &PASSWORD);
 //! let mut req = letterboxd::FilmRelationshipUpdateRequest::default();
@@ -47,6 +46,7 @@
 //!     client.update_film_relationship("2a9q", &req, &token); // Fight Club
 //! };
 //! // execute on core, e.g. with:
+//! // let mut core = Core::new().unwrap();
 //! // core.run(get_token.and_then(do_update).and_then(|response| { ... })).unwrap();
 //! # }
 //! ```
