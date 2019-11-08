@@ -22,7 +22,7 @@
 //! http://api-docs.letterboxd.com
 //!
 //! # Example
-//! ```
+//! ```rust,no_run
 //! # extern crate futures;
 //! # extern crate letterboxd;
 //! # extern crate tokio_core;
@@ -40,14 +40,16 @@
 //! let client = letterboxd::Client::new(api_key, api_secret);
 //!
 //! let get_token = client.auth(&USERNAME, &PASSWORD);
-//! let mut req = letterboxd::FilmRelationshipUpdateRequest::default();
-//! req.watched = Some(true);
-//! let do_update = |token| {
-//!     client.update_film_relationship("2a9q", &req, &token); // Fight Club
+//! let req = letterboxd::FilmRelationshipUpdateRequest {
+//!     watched: Some(true),
+//!     ..Default::default()
 //! };
-//! // execute on core, e.g. with:
-//! // let mut core = Core::new().unwrap();
-//! // core.run(get_token.and_then(do_update).and_then(|response| { ... })).unwrap();
+//! let do_update = |token| {
+//!     client.update_film_relationship("2a9q", &req, &token) // Fight Club
+//! };
+//! // execute on some runtime, e.g. with:
+//! let mut core = tokio_core::reactor::Core::new().unwrap();
+//! core.run(get_token.and_then(do_update)).unwrap();
 //! # }
 //! ```
 //!
@@ -61,7 +63,6 @@ extern crate serde_derive;
 extern crate futures;
 extern crate serde_json;
 extern crate serde_url_params;
-extern crate tokio_core;
 extern crate uuid;
 
 #[macro_use]
