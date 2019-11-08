@@ -1,6 +1,6 @@
 [package]
 name = "letterboxd"
-version = "0.1.1"
+version = "0.2.0"
 authors = ["boxdot <d@zerovolt.org>"]
 license = "MIT/Apache-2.0"
 description = "Letterboxd API provides access to data on the Letterboxd.com website"
