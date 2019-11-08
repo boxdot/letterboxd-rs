@@ -147,7 +147,6 @@ macro_rules! POST {
     };
 }
 
-
 #[macro_export]
 macro_rules! PATCH {
     ($(#[$attr:meta])* $func_name:ident, ($path:expr $(, $arg:ident:$T:ty)*), $ReqType:ty, $RespType:ty ) => {

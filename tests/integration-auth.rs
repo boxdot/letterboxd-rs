@@ -82,14 +82,16 @@ fn list() {
 
     const LIST_NAME: &'static str = "some_new_list";
 
-    let do_create =
-        client.post_list(&letterboxd::ListCreationRequest::new(String::from(LIST_NAME)), &token);
+    let do_create = client.post_list(
+        &letterboxd::ListCreationRequest::new(String::from(LIST_NAME)),
+        &token,
+    );
     let do_find = |resp: letterboxd::ListCreateResponse| client.list(&resp.data.id, Some(&token));
     let do_patch = |list: letterboxd::List| {
         let mut req = letterboxd::ListUpdateRequest::new(String::from(LIST_NAME));
         req.entries = vec![
             letterboxd::ListUpdateEntry::new(String::from("2a9q")), // Fight Club
-            letterboxd::ListUpdateEntry::new(String::from("bPI")) /* Melancholia */,
+            letterboxd::ListUpdateEntry::new(String::from("bPI")),  /* Melancholia */
         ];
         client.patch_list(&list.id, &req, &token)
     };
@@ -110,5 +112,6 @@ fn list() {
             .and_then(do_print)
             .and_then(check_patch)
             .and_then(do_delete),
-    ).unwrap();
+    )
+    .unwrap();
 }

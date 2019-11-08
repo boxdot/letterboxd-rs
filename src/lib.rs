@@ -58,11 +58,11 @@ extern crate hyper;
 extern crate hyper_tls;
 #[macro_use]
 extern crate serde_derive;
+extern crate futures;
 extern crate serde_json;
 extern crate serde_url_params;
-extern crate uuid;
-extern crate futures;
 extern crate tokio_core;
+extern crate uuid;
 
 #[macro_use]
 mod rest;
