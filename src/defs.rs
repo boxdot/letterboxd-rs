@@ -1,4 +1,5 @@
 #![allow(dead_code)]
+#![allow(clippy::enum_variant_names, clippy::large_enum_variant)]
 
 //! This module contains the transcript of types from Definitions section of
 //! the Letterboxd API:
@@ -1269,7 +1270,7 @@ pub struct ListCreationRequest {
 impl ListCreationRequest {
     pub fn new(name: String) -> Self {
         Self {
-            name: name,
+            name,
             published: false,
             ranked: false,
             description: None,
@@ -1522,7 +1523,7 @@ pub struct ListUpdateEntry {
 impl ListUpdateEntry {
     pub fn new(film: String) -> ListUpdateEntry {
         ListUpdateEntry {
-            film: film,
+            film,
             rank: None,
             notes: None,
             contains_spoilers: None,
@@ -1593,7 +1594,7 @@ impl ListUpdateRequest {
     pub fn new(name: String) -> ListUpdateRequest {
         ListUpdateRequest {
             published: None,
-            name: name,
+            name,
             ranked: None,
             description: None,
             tags: Vec::new(),
@@ -2938,7 +2939,7 @@ impl SearchRequest {
         SearchRequest {
             cursor: None,
             per_page: None,
-            input: input,
+            input,
             search_method: None,
             include: None,
             contribution_type: None,
