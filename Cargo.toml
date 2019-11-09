@@ -20,6 +20,7 @@ serde = { version = "1.0.102", features = ["derive"] }
 serde_json = "1.0.41"
 serde_url_params = "0.1.1"
 uuid = { version = "0.8.1", features = ["v4"] }
+http = "*"
 
 [dev-dependencies]
 tokio-core = "0.1.17"

@@ -54,8 +54,6 @@
 //! ```
 //!
 
-#[macro_use]
-mod rest;
 mod client;
 mod defs;
 mod error;
