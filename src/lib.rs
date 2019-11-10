@@ -61,4 +61,4 @@ mod helper;
 
 pub use client::Client;
 pub use defs::*;
-pub use error::Error;
+pub use error::{Error, Result};
