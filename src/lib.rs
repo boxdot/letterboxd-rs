@@ -4,9 +4,11 @@
 //! [Client](struct.Client.html)'s API follows the following rules:
 //!
 //! * All Letterboxd API calls are asynchronous.
-//! * Each method takes an optional argument `token`, which enabled
-//!   authentication for the call.
-//! * Except for GET calls all methods include a path parameter.
+//! * A client is always created from API key and secret. If auth token,
+//!   is provided, client calls will be authenticated. Client can be
+//!   created from username/password.
+//! * API key and secret can be created from default environment variables.
+//! * Except GET calls all methods include a path parameter.
 //!
 //! Further, most of [Client](struct.Client.html)'s methods take a request
 //! struct, which is then serialized to url encoded parameters and return a
@@ -22,43 +24,56 @@
 //! http://api-docs.letterboxd.com
 //!
 //! # Example
-//! ```rust,no_run
-//! # extern crate futures;
-//! # extern crate letterboxd;
-//! # extern crate tokio_core;
-//! #
-//! # use futures::future::Future;
-//! # use tokio_core::reactor::Core;
-//! #
-//! # const USERNAME: &'static str = "some key";
-//! # const PASSWORD: &'static str = "some key";
-//! #
-//! # fn main() {
-//! #   let api_key = String::from("some_key");
-//! #   let api_secret = String::from("some_secret");
-//! #
-//! let client = letterboxd::Client::new(api_key, api_secret);
 //!
-//! let get_token = client.auth(&USERNAME, &PASSWORD);
-//! let req = letterboxd::FilmRelationshipUpdateRequest {
-//!     watched: Some(true),
+//! Client without authentication:
+//!
+//! ```rust,no_run
+//! use tokio::runtime::current_thread::Runtime;
+//!
+//! let api_key_pair = letterboxd::ApiKeyPair::from_env().expect("missing api key/secret");
+//! let client = letterboxd::Client::new(api_key_pair);
+//!
+//! let req = letterboxd::FilmsRequest {
+//!     per_page: Some(1),
 //!     ..Default::default()
 //! };
-//! let do_update = |token| {
-//!     client.update_film_relationship("2a9q", &req, &token) // Fight Club
-//! };
-//! // execute on some runtime, e.g. with:
-//! let mut core = tokio_core::reactor::Core::new().unwrap();
-//! core.run(get_token.and_then(do_update)).unwrap();
-//! # }
+//! let resp = client.films(&req);
+//!
+//! let mut rt = Runtime::new().expect("valid runtime");
+//! let resp = rt.block_on(resp).expect("request failed");
+//! println!("{:?}", resp);
 //! ```
 //!
+//! Create and authenticate client from username/password;
+//!
+//! ```rust,no_run
+//! use tokio::runtime::current_thread::Runtime;
+//!
+//! let api_key_pair = letterboxd::ApiKeyPair::from_env().expect("missing api key/secret");
+//! let username = std::env::var("LETTERBOXD_USERNAME").expect("missing username");
+//! let password = std::env::var("LETTERBOXD_PASSWORD").expect("missing password");
+//!
+//! let res = async {
+//!     let client = letterboxd::Client::authenticate(api_key_pair, &username, &password).await?;
+//!
+//!     let req = letterboxd::FilmRelationshipUpdateRequest {
+//!         watched: Some(true),
+//!         ..Default::default()
+//!     };
+//!     client.update_film_relationship("2a9q", &req).await?; // Fight Club
+//!
+//!     Ok::<_, letterboxd::Error>(())
+//! };
+//!
+//! let mut rt = Runtime::new().expect("valid runtime");
+//! let resp = rt.block_on(res).expect("request failed");
+//! ```
 
 mod client;
 mod defs;
 mod error;
 mod helper;
 
-pub use client::Client;
+pub use client::{ApiKeyPair, Client};
 pub use defs::*;
 pub use error::{Error, Result};

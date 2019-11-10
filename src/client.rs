@@ -14,17 +14,30 @@ pub struct ApiKeyPair {
 }
 
 impl ApiKeyPair {
+    pub const API_KEY_ENVVAR: &'static str = "LETTERBOXD_API_KEY";
+    pub const API_SECRET_ENVVAR: &'static str = "LETTERBOXD_API_SECRET";
+
     pub fn new(api_key: String, api_secret: String) -> Self {
         Self {
             api_key,
             api_secret,
         }
     }
+
+    pub fn from_env() -> Option<Self> {
+        match (
+            std::env::var(Self::API_KEY_ENVVAR),
+            std::env::var(Self::API_SECRET_ENVVAR),
+        ) {
+            (Ok(api_key), Ok(api_secret)) => Some(Self::new(api_key, api_secret)),
+            _ => None,
+        }
+    }
 }
 
 pub struct Client {
     api_key_pair: ApiKeyPair,
-    token: defs::AccessToken,
+    token: Option<defs::AccessToken>,
     http_client: hyper::Client<HttpsConnector<HttpConnector>>,
 }
 
@@ -37,7 +50,7 @@ impl Client {
 
         Self {
             api_key_pair,
-            token: Default::default(), // invalid token
+            token: None,
             http_client,
         }
     }
@@ -85,7 +98,7 @@ impl Client {
         let token: defs::AccessToken = serde_json::from_slice(&bytes)?;
         Ok(Self {
             api_key_pair,
-            token,
+            token: Some(token),
             http_client,
         })
     }
@@ -95,13 +108,21 @@ impl Client {
         let http_client = hyper::Client::builder().build::<_, Body>(https);
         Self {
             api_key_pair,
-            token,
+            token: Some(token),
             http_client,
         }
     }
 
-    pub fn token(&self) -> &defs::AccessToken {
-        &self.token
+    pub fn is_authenticatd(&self) -> bool {
+        self.token.is_some()
+    }
+
+    pub fn token(&self) -> Option<&defs::AccessToken> {
+        self.token.as_ref()
+    }
+
+    pub fn set_token(&mut self, token: defs::AccessToken) {
+        self.token = Some(token);
     }
 
     // API endpoints
@@ -205,15 +226,13 @@ impl Client {
     }
 
     /// Delete a list by ID.
-    pub async fn delete_list(&self, id: &str, request: &defs::ListUpdateRequest) -> Result<()> {
-        self.delete(&format!("list/{}", id), request).await
+    pub async fn delete_list(&self, id: &str) -> Result<()> {
+        self.delete(&format!("list/{}", id)).await
     }
 
     //     /list/{id}/comments
 
-    //     /list/{id}/entries
-
-    /// Delete a list by ID.
+    /// Get entries for a list by ID.
     pub async fn list_entries(
         &self,
         id: &str,
@@ -274,7 +293,7 @@ impl Client {
     where
         R: DeserializeOwned + 'static,
     {
-        self.request::<(), (), _>(Method::GET, endpoint_path, None, None, false)
+        self.request::<(), (), _>(Method::GET, endpoint_path, None, None)
             .await
     }
 
@@ -283,7 +302,7 @@ impl Client {
         Q: Serialize,
         R: DeserializeOwned + 'static,
     {
-        self.request::<_, (), _>(Method::GET, endpoint_path, Some(query), None, false)
+        self.request::<_, (), _>(Method::GET, endpoint_path, Some(query), None)
             .await
     }
 
@@ -292,7 +311,7 @@ impl Client {
         B: Serialize,
         R: DeserializeOwned + 'static,
     {
-        self.request::<(), _, _>(Method::GET, endpoint_path, None, Some(body), false)
+        self.request::<(), _, _>(Method::PATCH, endpoint_path, None, Some(body))
             .await
     }
 
@@ -301,15 +320,12 @@ impl Client {
         B: Serialize,
         R: DeserializeOwned + 'static,
     {
-        self.request::<(), _, _>(Method::POST, endpoint_path, None, Some(body), false)
+        self.request::<(), _, _>(Method::POST, endpoint_path, None, Some(body))
             .await
     }
 
-    async fn delete<B>(&self, endpoint_path: &str, body: &B) -> Result<()>
-    where
-        B: Serialize,
-    {
-        self.request_bytes::<(), _>(Method::POST, endpoint_path, None, Some(body), false)
+    async fn delete(&self, endpoint_path: &str) -> Result<()> {
+        self.request_bytes::<(), ()>(Method::DELETE, endpoint_path, None, None)
             .await?;
         Ok(())
     }
@@ -320,7 +336,6 @@ impl Client {
         endpoint_path: &str,
         query: Option<&Q>,
         body: Option<&B>,
-        with_auth: bool,
     ) -> Result<R>
     where
         Q: Serialize,
@@ -328,7 +343,7 @@ impl Client {
         R: DeserializeOwned + 'static,
     {
         let bytes = self
-            .request_bytes(method, endpoint_path, query, body, with_auth)
+            .request_bytes(method, endpoint_path, query, body)
             .await?;
         let res = serde_json::from_slice(&bytes)?;
         Ok(res)
@@ -340,7 +355,6 @@ impl Client {
         endpoint_path: &str,
         query: Option<&Q>,
         body: Option<&B>,
-        with_auth: bool,
     ) -> Result<Vec<u8>>
     where
         Q: Serialize,
@@ -373,10 +387,10 @@ impl Client {
         };
         req.header(header::CONTENT_LENGTH, content_length);
 
-        if with_auth {
+        if let Some(token) = self.token.as_ref() {
             req.header(
                 header::AUTHORIZATION,
-                HeaderValue::from_str(&format!("Bearer {}", self.token.access_token))
+                HeaderValue::from_str(&format!("Bearer {}", token.access_token))
                     .expect("invalid header value"),
             );
         }
@@ -394,7 +408,7 @@ impl Client {
             bytes.extend(chunk);
         }
 
-        if status != StatusCode::OK {
+        if !status.is_success() {
             let content = String::from_utf8_lossy(&bytes);
             return Err(Error::server_error(status, content.to_string(), uri));
         }
@@ -437,7 +451,11 @@ fn url_with_nonce_and_timestamp(
         api_key_pair.api_key,
         nonce,
         timestamp,
-        parameters.map(|_| "&").unwrap_or_default(),
+        if !parameters.unwrap_or_default().is_empty() {
+            "&"
+        } else {
+            ""
+        },
         parameters.unwrap_or_default()
     );
 

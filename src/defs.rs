@@ -2914,7 +2914,7 @@ pub enum SearchMethod {
     Autocomplete,
 }
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchRequest {
     /// The pagination cursor.
