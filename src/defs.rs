@@ -229,7 +229,7 @@ pub enum AbstractSearchItem {
     },
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Default, Clone)]
 pub struct AccessToken {
     /// The access token that grants the member access. Combine this with the
     /// token_type to form the Authorization header.

@@ -28,6 +28,8 @@ pub enum Kind {
     Uri(hyper::http::uri::InvalidUri),
     Json(serde_json::Error),
     Utf8Error(std::str::Utf8Error),
+    UrlEncoding(serde_urlencoded::ser::Error),
+    UrlParams(serde_url_params::Error),
     ServerError(StatusCode, String /* response */),
 }
 
@@ -42,6 +44,8 @@ impl fmt::Display for Error {
             Kind::Uri(ref e) => fmt::Display::fmt(e, f),
             Kind::Json(ref e) => fmt::Display::fmt(e, f),
             Kind::Utf8Error(ref e) => fmt::Display::fmt(e, f),
+            Kind::UrlEncoding(ref e) => fmt::Display::fmt(e, f),
+            Kind::UrlParams(ref e) => fmt::Display::fmt(e, f),
             Kind::ServerError(ref code, ref resp) => {
                 write!(f, "Server Error: {}, Response: {}", code, resp)
             }
@@ -82,6 +86,24 @@ impl From<std::str::Utf8Error> for Error {
     fn from(err: std::str::Utf8Error) -> Self {
         Self {
             kind: Kind::Utf8Error(err),
+            url: None,
+        }
+    }
+}
+
+impl From<serde_urlencoded::ser::Error> for Error {
+    fn from(err: serde_urlencoded::ser::Error) -> Self {
+        Self {
+            kind: Kind::UrlEncoding(err),
+            url: None,
+        }
+    }
+}
+
+impl From<serde_url_params::Error> for Error {
+    fn from(err: serde_url_params::Error) -> Self {
+        Self {
+            kind: Kind::UrlParams(err),
             url: None,
         }
     }
