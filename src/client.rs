@@ -2,11 +2,21 @@ use crate::defs;
 use crate::error::{Error, Result};
 use crate::helper;
 
-use http::{header, HeaderValue, Method, StatusCode, Uri};
-use hyper::{client::HttpConnector, Body, Request};
+use hyper::{
+    client::HttpConnector,
+    header::{self, HeaderValue},
+    Body, Method, Request, StatusCode, Uri,
+};
 use hyper_tls::HttpsConnector;
 use serde::{de::DeserializeOwned, Serialize};
 
+/// API key/secret pair.
+///
+/// Can be created explicitly, or from default environment variables
+/// `LETTERBOXD_API_KEY` and `LETTERBOXD_API_SECRET`.
+///
+/// Note: Not all APIs are implemented. Feel free to contribute implementation for missing
+/// endpoints. The implementation is usually very straight forward.
 #[derive(Debug, Clone)]
 pub struct ApiKeyPair {
     api_key: String,
@@ -14,9 +24,12 @@ pub struct ApiKeyPair {
 }
 
 impl ApiKeyPair {
+    /// Environment variable name used to get API key.
     pub const API_KEY_ENVVAR: &'static str = "LETTERBOXD_API_KEY";
+    /// Environment variable name used to get API secret.
     pub const API_SECRET_ENVVAR: &'static str = "LETTERBOXD_API_SECRET";
 
+    /// Creates new ApiKeyPair from given key and secret.
     pub fn new(api_key: String, api_secret: String) -> Self {
         Self {
             api_key,
@@ -24,6 +37,12 @@ impl ApiKeyPair {
         }
     }
 
+    /// Tries to create an new api key pair from environment.
+    ///
+    /// The environment variable name are defined by constants `API_KEY_ENVVAR`
+    /// and `API_SECRET_ENVVAR`.
+    ///
+    /// If one of the variables is missing, returns `None`.
     pub fn from_env() -> Option<Self> {
         match (
             std::env::var(Self::API_KEY_ENVVAR),
@@ -35,6 +54,14 @@ impl ApiKeyPair {
     }
 }
 
+/// Letterboxd asynchronous client.
+///
+/// Client is created from given api key pair either
+///
+/// * by authenticating using a username/password,
+/// * with a token (all API calls will be authenticated),
+/// * without a token (no API calls will be authenticated; calls that require
+///   authentication will fail).
 pub struct Client {
     api_key_pair: ApiKeyPair,
     token: Option<defs::AccessToken>,
@@ -44,6 +71,7 @@ pub struct Client {
 impl Client {
     const API_BASE_URL: &'static str = "https://api.letterboxd.com/api/v0/";
 
+    /// Creates a new client without authentication.
     pub fn new(api_key_pair: ApiKeyPair) -> Self {
         let https = hyper_tls::HttpsConnector::new().unwrap();
         let http_client = hyper::Client::builder().build::<_, Body>(https);
@@ -55,6 +83,7 @@ impl Client {
         }
     }
 
+    /// Authenticates and creates a new client from given username/password.
     pub async fn authenticate(
         api_key_pair: ApiKeyPair,
         username: &str,
@@ -103,6 +132,9 @@ impl Client {
         })
     }
 
+    /// Crates a new client from a given token.
+    ///
+    /// It is not checked that the token is valid.
     pub fn with_token(api_key_pair: ApiKeyPair, token: defs::AccessToken) -> Self {
         let https = HttpsConnector::new().unwrap();
         let http_client = hyper::Client::builder().build::<_, Body>(https);
@@ -113,16 +145,23 @@ impl Client {
         }
     }
 
-    pub fn is_authenticatd(&self) -> bool {
+    /// Returns if the client has a token.
+    ///
+    /// This method does *not* check that the token is valid.
+    pub fn is_authenticated(&self) -> bool {
         self.token.is_some()
     }
 
+    /// Returns the token used for authentication.
     pub fn token(&self) -> Option<&defs::AccessToken> {
         self.token.as_ref()
     }
 
-    pub fn set_token(&mut self, token: defs::AccessToken) {
-        self.token = Some(token);
+    /// Sets a new token which will be used for authentication.
+    ///
+    /// Setting `None` disables authentication.
+    pub fn set_token(&mut self, token: Option<defs::AccessToken>) {
+        self.token = token;
     }
 
     // API endpoints
@@ -466,29 +505,3 @@ fn url_with_nonce_and_timestamp(
         helper::hmac_sha256(&api_key_pair.api_secret, &salted_msg)
     )
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::*;
-//     use std::env;
-//     use tokio::runtime::current_thread::Runtime;
-
-//     #[test]
-//     fn test_list() -> Result<()> {
-//         let api_key = env::var("API_KEY").expect("missing API_KEY");
-//         let api_secret = env::var("API_SECRET").expect("missing API_SECRET");
-
-//         let client = Client::new(ApiKeyPair::new(api_key, api_secret));
-//         let req = defs::FilmsRequest {
-//             per_page: Some(1),
-//             ..Default::default()
-//         };
-//         let fut = client.films(&req);
-
-//         let mut rt = Runtime::new().expect("runtime new");
-//         let resp = rt.block_on(fut)?;
-//         println!("{:?}", resp);
-
-//         Ok(())
-//     }
-// }

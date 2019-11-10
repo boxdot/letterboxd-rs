@@ -1,10 +1,8 @@
-use std::time;
-
-use crypto::hmac;
-use crypto::mac::Mac;
-use crypto::sha2;
+use crypto::{hmac, mac::Mac, sha2};
 use hex::ToHex;
 use uuid;
+
+use std::time;
 
 pub fn nonce() -> uuid::Uuid {
     uuid::Uuid::new_v4()

@@ -6,7 +6,7 @@
 //! * All Letterboxd API calls are asynchronous.
 //! * A client is always created from API key and secret. If auth token,
 //!   is provided, client calls will be authenticated. Client can be
-//!   created from username/password.
+//!   created from username/password. A token can be set after client was created.
 //! * API key and secret can be created from default environment variables.
 //! * Except GET calls all methods include a path parameter.
 //!
@@ -23,7 +23,7 @@
 //! For more information, cf. API docs at
 //! http://api-docs.letterboxd.com
 //!
-//! # Example
+//! # Examples
 //!
 //! Client without authentication:
 //!
