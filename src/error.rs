@@ -25,6 +25,7 @@ impl Error {
         &self.kind
     }
 
+    /// Returns the url (if any) for which the error occurred.
     pub fn url(&self) -> Option<&Uri> {
         self.url.as_ref()
     }

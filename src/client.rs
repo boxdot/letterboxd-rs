@@ -10,6 +10,7 @@ use hyper::{
 };
 use hyper_tls::HttpsConnector;
 use serde::{de::DeserializeOwned, Serialize};
+use url::Url;
 
 /// API key/secret pair.
 ///
@@ -400,33 +401,30 @@ impl Client {
         Q: Serialize,
         B: Serialize,
     {
+        let mut url = Url::parse(Self::API_BASE_URL)
+            .unwrap()
+            .join(endpoint_path)
+            .unwrap(); // TODO
         let query = query.map(serde_url_params::to_string).transpose()?;
-        let body = body.map(serde_json::to_string).transpose()?;
+        url.set_query(query.as_ref().map(|s| s.as_ref()));
+        let body = body
+            .map(serde_json::to_vec)
+            .transpose()?
+            .unwrap_or_default();
 
-        let signed_url = generate_signed_url(
-            method.clone(),
-            endpoint_path,
-            query.as_ref().map(String::as_str),
-            body.as_ref().map(String::as_str),
-            &self.api_key_pair,
-        );
-
-        let uri: Uri = signed_url.parse()?;
-        let content_length = if let Some(body) = body.as_ref() {
-            let content_length = body.as_bytes().len();
-            HeaderValue::from_str(&format!("{}", content_length)).expect("invalid header value")
-        } else {
-            HeaderValue::from_static("0")
-        };
+        let signed_url = self.sign_url(url, &method, &body);
 
         let req = Request::builder()
             .method(method)
-            .uri(uri.clone())
+            .uri(signed_url.as_str())
             .header(
                 header::CONTENT_TYPE,
                 HeaderValue::from_static("application/json"),
             )
-            .header(header::CONTENT_LENGTH, content_length);
+            .header(
+                header::CONTENT_LENGTH,
+                HeaderValue::from_str(&format!("{}", body.len())).expect("invalid header value"),
+            );
 
         let req = if let Some(token) = self.token.as_ref() {
             req.header(
@@ -438,9 +436,7 @@ impl Client {
             req
         };
 
-        let req = req
-            .body(body.map(Body::from).unwrap_or_default())
-            .expect("invalid body");
+        let req = req.body(Body::from(body)).expect("invalid body");
         let resp = self.http_client.request(req).await?;
         let status = resp.status();
 
@@ -453,10 +449,53 @@ impl Client {
 
         if !status.is_success() {
             let content = String::from_utf8_lossy(&bytes);
-            return Err(Error::server_error(status, content.to_string(), uri));
+            return Err(Error::server_error(
+                status,
+                content.to_string(),
+                signed_url.as_str().parse()?,
+            ));
         }
 
         Ok(bytes)
+    }
+
+    /// Signs the request based on a random and unique nonce, timestamp, and
+    /// client id and secret.
+    ///
+    /// The client id, nonce, timestamp and signature are added to the url's
+    /// query.
+    ///
+    /// See http://api-docs.letterboxd.com/#signing.
+    fn sign_url(&self, mut url: Url, method: &Method, body: &[u8]) -> Url {
+        use crypto::{hmac, mac::Mac, sha2};
+        use hex::ToHex;
+        use std::time;
+
+        let nonce = uuid::Uuid::new_v4(); // use UUID as random and unique nonce
+
+        let timestamp = time::SystemTime::now()
+            .duration_since(time::UNIX_EPOCH)
+            .expect("SystemTime::duration_since failed")
+            .as_secs();
+
+        url.query_pairs_mut()
+            .append_pair("apikey", &self.api_key_pair.api_key)
+            .append_pair("nonce", &format!("{}", nonce))
+            .append_pair("timestamp", &format!("{}", timestamp));
+
+        // create signature
+        let mut hmac =
+            hmac::Hmac::new(sha2::Sha256::new(), self.api_key_pair.api_secret.as_bytes());
+        hmac.input(method.as_str().as_bytes());
+        hmac.input(&[b'\0']);
+        hmac.input(url.as_str().as_bytes());
+        hmac.input(&[b'\0']);
+        hmac.input(body);
+        let signature: String = hmac.result().code().encode_hex();
+
+        url.query_pairs_mut().append_pair("signature", &signature);
+
+        url
     }
 }
 
