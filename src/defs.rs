@@ -1,4 +1,4 @@
-#![allow(dead_code)]
+#![allow(dead_code, missing_docs)]
 #![allow(clippy::enum_variant_names, clippy::large_enum_variant)]
 
 //! This module contains the transcript of types from Definitions section of
@@ -229,7 +229,7 @@ pub enum AbstractSearchItem {
     },
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Deserialize, Debug, Default, Clone)]
 pub struct AccessToken {
     /// The access token that grants the member access. Combine this with the
     /// token_type to form the Authorization header.
@@ -2914,7 +2914,7 @@ pub enum SearchMethod {
     Autocomplete,
 }
 
-#[derive(Serialize, Debug, Clone)]
+#[derive(Serialize, Debug, Clone, Default)]
 #[serde(rename_all = "camelCase")]
 pub struct SearchRequest {
     /// The pagination cursor.

@@ -5,21 +5,22 @@ authors = ["boxdot <d@zerovolt.org>"]
 license = "MIT/Apache-2.0"
 description = "Letterboxd API provides access to data on the Letterboxd.com website"
 repository = "https://github.com/boxdot/letterboxd-rs"
-keywords = ["rest", "letterboxd"]
+keywords = ["rest", "letterboxd", "client"]
 categories = ["api-bindings"]
 readme = "README.md"
 edition = "2018"
 
 [dependencies]
-futures = "0.1"
 hex = "0.4.0"
-hyper = "0.12.35"
-hyper-tls = "0.3.2"
+hyper = { version = "0.13.1", default-features = false, features = ["stream"] }
+hyper-tls = "0.4.0"
 rust-crypto = "0.2.36"
 serde = { version = "1.0.102", features = ["derive"] }
 serde_json = "1.0.41"
 serde_url_params = "0.1.1"
 uuid = { version = "0.8.1", features = ["v4"] }
+futures = "0.3.1"
+url = "2.1.1"
 
 [dev-dependencies]
-tokio-core = "0.1.17"
+tokio = "0.2.8"

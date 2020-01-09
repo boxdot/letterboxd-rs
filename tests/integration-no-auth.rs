@@ -1,176 +1,157 @@
-use std::env;
-use std::fmt;
-use std::process;
+use tokio::runtime::Runtime;
 
-use futures::Future;
-use tokio_core::reactor::Core;
+const USAGE: &'static str = r#"This binary assumes that the following environment variables are set:
+  LETTERBOXD_API_KEY       letterboxd api key
+  LETTERBOXD_API_SECRET    letterboxd api secret
+"#;
 
-fn usage_and_exit(_: env::VarError) -> String {
-    println!(
-        r#"This binary assumes that the following environment variables are set:
-  API_KEY       letterboxd api key
-  API_SECRET    letterboxd api secret
-"#
-    );
-    process::exit(1);
-}
+#[test]
+#[ignore]
+fn films() -> letterboxd::Result<()> {
+    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
+    let client = letterboxd::Client::new(api_key_pair);
 
-fn do_print<T>(resp: T) -> Result<T, letterboxd::Error>
-where
-    T: fmt::Debug,
-{
+    let req = letterboxd::FilmsRequest {
+        per_page: Some(1),
+        ..Default::default()
+    };
+    let resp = client.films(&req);
+
+    let mut rt = Runtime::new().expect("valid runtime");
+    let resp = rt.block_on(resp)?;
     println!("{:?}", resp);
-    Ok(resp)
+
+    Ok(())
 }
 
 #[test]
 #[ignore]
-fn films() {
-    let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
-    let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
+fn film_services() -> letterboxd::Result<()> {
+    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
+    let client = letterboxd::Client::new(api_key_pair);
 
-    let client = letterboxd::Client::new(api_key, api_secret);
+    let mut rt = Runtime::new().expect("valid runtime");
+    let resp = rt.block_on(client.film_services())?;
+    println!("{:?}", resp);
 
-    let mut req = letterboxd::FilmsRequest::default();
-    req.per_page = Some(1);
-    let do_get_films = client.films(&req, None);
-
-    let mut core = Core::new().unwrap();
-    core.run(do_get_films.and_then(do_print)).unwrap();
+    Ok(())
 }
 
 #[test]
 #[ignore]
-fn film_services() {
-    let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
-    let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
+fn film_genres() -> letterboxd::Result<()> {
+    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
+    let client = letterboxd::Client::new(api_key_pair);
 
-    let client = letterboxd::Client::new(api_key, api_secret);
+    let mut rt = Runtime::new().expect("valid runtime");
+    let resp = rt.block_on(client.film_genres())?;
+    println!("{:?}", resp);
 
-    let do_get_film_services = client.film_services(None);
-
-    let mut core = Core::new().unwrap();
-    core.run(do_get_film_services.and_then(do_print)).unwrap();
+    Ok(())
 }
 
 #[test]
 #[ignore]
-fn film_genres() {
-    let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
-    let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
+fn film() -> letterboxd::Result<()> {
+    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
+    let client = letterboxd::Client::new(api_key_pair);
 
-    let client = letterboxd::Client::new(api_key, api_secret);
+    let resp = client.film("2a9q"); // Fight Club
 
-    let do_get_film_genres = client.film_genres(None);
+    let mut rt = Runtime::new().expect("valid runtime");
+    let film = rt.block_on(resp)?;
+    println!("{:?}", film);
+    assert_eq!(film.name, "Fight Club");
 
-    let mut core = Core::new().unwrap();
-    core.run(do_get_film_genres.and_then(do_print)).unwrap();
+    Ok(())
 }
 
 #[test]
 #[ignore]
-fn film() {
-    let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
-    let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
+fn film_availability() -> letterboxd::Result<()> {
+    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
+    let client = letterboxd::Client::new(api_key_pair);
 
-    let client = letterboxd::Client::new(api_key, api_secret);
+    let resp = client.film_availability("2a9q"); // Fight Club
 
-    let do_get_film = client.film("2a9q", None); // Fight Club
-    let do_check = |film: letterboxd::Film| {
+    let mut rt = Runtime::new().expect("valid runtime");
+    let resp = rt.block_on(resp)?;
+    println!("{:?}", resp);
+
+    Ok(())
+}
+
+#[test]
+#[ignore]
+fn film_statistics() -> letterboxd::Result<()> {
+    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
+    let client = letterboxd::Client::new(api_key_pair);
+
+    let resp = client.film_statistics("2a9q"); // Fight Club
+
+    let mut rt = Runtime::new().expect("valid runtime");
+    let resp = rt.block_on(resp)?;
+    println!("{:?}", resp);
+
+    Ok(())
+}
+
+#[test]
+#[ignore]
+fn list() -> letterboxd::Result<()> {
+    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
+    let client = letterboxd::Client::new(api_key_pair);
+
+    let resp = client.list("1fKte"); // Collection
+
+    let mut rt = Runtime::new().expect("valid runtime");
+    let list = rt.block_on(resp)?;
+    println!("{:?}", list);
+    assert_eq!(list.name, "Collection");
+
+    Ok(())
+}
+
+#[test]
+#[ignore]
+fn list_entries() -> letterboxd::Result<()> {
+    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
+    let client = letterboxd::Client::new(api_key_pair);
+
+    let req = letterboxd::ListEntriesRequest::default();
+    let resp = client.list_entries("1fKte", &req); // Collection
+
+    let mut rt = Runtime::new().expect("valid runtime");
+    let resp = rt.block_on(resp)?;
+    println!("{:?}", resp);
+
+    Ok(())
+}
+
+#[test]
+#[ignore]
+fn search() -> letterboxd::Result<()> {
+    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
+    let client = letterboxd::Client::new(api_key_pair);
+
+    let req = letterboxd::SearchRequest {
+        input: String::from("Fight Club"),
+        per_page: Some(1),
+        ..Default::default()
+    };
+    let resp = client.search(&req);
+
+    let mut rt = Runtime::new().expect("valid runtime");
+    let resp = rt.block_on(resp)?;
+    println!("{:?}", resp);
+
+    assert!(!resp.items.is_empty());
+    let item = &resp.items[0];
+    if let letterboxd::AbstractSearchItem::FilmSearchItem { ref film, .. } = *item {
         assert_eq!(film.name, "Fight Club");
-        Ok(film)
-    };
+    } else {
+        panic!("found unexpected item: {:?}", item);
+    }
 
-    let mut core = Core::new().unwrap();
-    core.run(do_get_film.and_then(do_check).and_then(do_print))
-        .unwrap();
-}
-
-#[test]
-#[ignore]
-fn film_availability() {
-    let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
-    let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
-
-    let client = letterboxd::Client::new(api_key, api_secret);
-
-    let do_get_film_availability = client.film_availability("2a9q", None); // Fight Club
-
-    let mut core = Core::new().unwrap();
-    core.run(do_get_film_availability.and_then(do_print))
-        .unwrap();
-}
-
-#[test]
-#[ignore]
-fn film_statistics() {
-    let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
-    let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
-
-    let client = letterboxd::Client::new(api_key, api_secret);
-
-    let do_get_film_stats = client.film_statistics("2a9q", None); // Fight Club
-
-    let mut core = Core::new().unwrap();
-    core.run(do_get_film_stats.and_then(do_print)).unwrap();
-}
-
-#[test]
-#[ignore]
-fn list() {
-    let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
-    let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
-
-    let client = letterboxd::Client::new(api_key, api_secret);
-
-    let do_req = client.list("1dgps", None); // testing_list
-    let do_check = |list: letterboxd::List| {
-        assert_eq!(list.name, "Collection");
-        Ok(list)
-    };
-
-    let mut core = Core::new().unwrap();
-    core.run(do_req.and_then(do_check).and_then(do_print))
-        .unwrap();
-}
-
-#[test]
-#[ignore]
-fn list_entries() {
-    let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
-    let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
-
-    let client = letterboxd::Client::new(api_key, api_secret);
-
-    // 1dgps -> testing_list
-    let do_req = client.list_entries("1dgps", &letterboxd::ListEntriesRequest::default(), None);
-
-    let mut core = Core::new().unwrap();
-    core.run(do_req.and_then(do_print)).unwrap();
-}
-
-#[test]
-#[ignore]
-fn search() {
-    let api_key = env::var("API_KEY").unwrap_or_else(usage_and_exit);
-    let api_secret = env::var("API_SECRET").unwrap_or_else(usage_and_exit);
-
-    let client = letterboxd::Client::new(api_key, api_secret);
-
-    let mut req = letterboxd::SearchRequest::new(String::from("Fight Club"));
-    req.per_page = Some(1);
-    let do_search = client.search(&req, None);
-
-    let do_check = |resp: letterboxd::SearchResponse| {
-        let item = &resp.items[0];
-        if let letterboxd::AbstractSearchItem::FilmSearchItem { ref film, .. } = *item {
-            assert_eq!(film.name, "Fight Club");
-        } else {
-            assert!(false);
-        }
-        Ok(())
-    };
-
-    let mut core = Core::new().unwrap();
-    core.run(do_search.and_then(do_check)).unwrap();
+    Ok(())
 }

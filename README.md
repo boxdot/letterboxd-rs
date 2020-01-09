@@ -1,38 +1,32 @@
 # Letterboxd API for Rust ![rust build status](https://github.com/boxdot/letterboxd-rs/workflows/rust/badge.svg)
 
-[Letterboxd API](http://api-docs.letterboxd.com) for access to data on the Letterboxd.com website in Rust.
+[Letterboxd API](http://api-docs.letterboxd.com) client for accessing the data on the
+Letterboxd.com website in Rust.
 
 ## Example
 
 ```rust
-let client = letterboxd::Client::new(API_KEY, API_SECRET);
+use tokio::runtime::Runtime;
 
-let mut req = letterboxd::SearchRequest::new(String::from("Fight Club"));
-let do_search = client.search(&req, None /* no auth token needed */);
+let api_key_pair = letterboxd::ApiKeyPair::from_env().unwrap();
+let client = letterboxd::Client::new(api_key_pair);
 
-let do_print = |resp| {
-    println!("{:?}", resp);
-    Ok(())
+let req = letterboxd::SearchRequest {
+    input: "Fight Club".to_string(),
+    per_page: Some(1),
+    ..Default::default()
 };
+let resp = client.search(&req);
 
-let mut core = tokio::Core::new().unwrap();
-core.run(do_search.and_then(do_print)).unwrap();
+let mut rt = Runtime::new().unwrap();
+let resp = rt.block_on(resp).unwrap();
+println!("{:?}", resp);
 ```
 
 For more examples cf. `tests/integration.rs`.
 
-## Progress
-
-- [x] Request signing
-- [ ] Endpoint Auth
-- [ ] Endpoint Comment
-- [ ] Endpoint Contributor
-- [x] Endpoint Film (except for `film/report`)
-- [x] Endpoint List
-- [ ] Endpoint Log-Entry
-- [ ] Endpoint Me
-- [ ] Endpoint Member
-- [x] Endpoint Search
+*Note*: Not all APIs are implemented. Feel free to contribute missing implementation, usually these
+are very straight forward.
 
 ## License
 
