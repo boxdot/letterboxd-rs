@@ -74,7 +74,6 @@
 mod client;
 mod defs;
 mod error;
-mod helper;
 
 pub use client::{ApiKeyPair, Client};
 pub use defs::*;

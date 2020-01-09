@@ -1,12 +1,11 @@
 use crate::defs;
 use crate::error::{Error, Result};
-use crate::helper;
 
 use futures::stream::StreamExt;
 use hyper::{
     client::HttpConnector,
     header::{self, HeaderValue},
-    Body, Method, Request, StatusCode, Uri,
+    Body, Method, Request,
 };
 use hyper_tls::HttpsConnector;
 use serde::{de::DeserializeOwned, Serialize};
@@ -104,47 +103,25 @@ impl Client {
         username: &str,
         password: &str,
     ) -> Result<Self> {
-        let https = hyper_tls::HttpsConnector::new();
-        let http_client = hyper::Client::builder().build::<_, Body>(https);
-
-        let body = format!(
-            "grant_type=password&username={}&password={}",
-            username, password
-        );
-        let signed_url =
-            generate_signed_url(Method::POST, "auth/token", None, Some(&body), &api_key_pair);
-        let uri: Uri = signed_url.parse()?;
-
-        let req = hyper::Request::post(uri.clone())
-            .header(
-                header::CONTENT_TYPE,
-                HeaderValue::from_static("application/x-www-form-urlencoded"),
-            )
-            .header(header::ACCEPT, HeaderValue::from_static("application/json"))
-            .body(Body::from(body))
-            .unwrap();
-
-        let resp = http_client.request(req).await?;
-        let status = resp.status();
-
-        let mut body = resp.into_body();
-        let mut bytes = Vec::new();
-        while let Some(next) = body.next().await {
-            let chunk = next?;
-            bytes.extend(chunk);
+        #[derive(Debug, Serialize)]
+        struct AuthRequest<'a> {
+            grant_type: &'static str,
+            username: &'a str,
+            password: &'a str,
         }
 
-        if status != StatusCode::OK {
-            let content = String::from_utf8_lossy(&bytes);
-            return Err(Error::server_error(status, content.to_string(), uri));
-        }
+        let query = AuthRequest {
+            grant_type: "password",
+            username,
+            password,
+        };
 
-        let token: defs::AccessToken = serde_json::from_slice(&bytes)?;
-        Ok(Self {
-            api_key_pair,
-            token: Some(token),
-            http_client,
-        })
+        let mut client = Self::new(api_key_pair);
+        let bytes = client
+            .request_bytes(Method::POST, "auth/token", Some(&query), None)
+            .await?;
+        client.set_token(Some(serde_json::from_slice(&bytes)?));
+        Ok(client)
     }
 
     /// Returns if the client has a token.
@@ -366,7 +343,7 @@ impl Client {
     }
 
     async fn delete(&self, endpoint_path: &str) -> Result<()> {
-        self.request_bytes::<(), ()>(Method::DELETE, endpoint_path, None, None)
+        self.request_bytes::<()>(Method::DELETE, endpoint_path, None, None)
             .await?;
         Ok(())
     }
@@ -383,6 +360,7 @@ impl Client {
         B: Serialize,
         R: DeserializeOwned + 'static,
     {
+        let body = body.map(serde_json::to_vec).transpose()?;
         let bytes = self
             .request_bytes(method, endpoint_path, query, body)
             .await?;
@@ -390,16 +368,15 @@ impl Client {
         Ok(res)
     }
 
-    async fn request_bytes<Q, B>(
+    async fn request_bytes<Q>(
         &self,
         method: Method,
         endpoint_path: &str,
         query: Option<&Q>,
-        body: Option<&B>,
+        body: Option<Vec<u8>>,
     ) -> Result<Vec<u8>>
     where
         Q: Serialize,
-        B: Serialize,
     {
         let mut url = Url::parse(Self::API_BASE_URL)
             .unwrap()
@@ -407,10 +384,7 @@ impl Client {
             .unwrap(); // TODO
         let query = query.map(serde_url_params::to_string).transpose()?;
         url.set_query(query.as_ref().map(|s| s.as_ref()));
-        let body = body
-            .map(serde_json::to_vec)
-            .transpose()?
-            .unwrap_or_default();
+        let body = body.unwrap_or_default();
 
         let signed_url = self.sign_url(url, &method, &body);
 
@@ -497,54 +471,4 @@ impl Client {
 
         url
     }
-}
-
-fn generate_signed_url(
-    method: Method,
-    endpoint: &str,
-    parameters: Option<&str>,
-    body: Option<&str>,
-    api_key_pair: &ApiKeyPair,
-) -> String {
-    url_with_nonce_and_timestamp(
-        method,
-        endpoint,
-        parameters,
-        body,
-        api_key_pair,
-        helper::nonce(),
-        helper::now(),
-    )
-}
-
-fn url_with_nonce_and_timestamp(
-    method: Method,
-    endpoint: &str,
-    parameters: Option<&str>,
-    body: Option<&str>,
-    api_key_pair: &ApiKeyPair,
-    nonce: uuid::Uuid,
-    timestamp: u64,
-) -> String {
-    let url = format!(
-        "{}{}?apikey={}&nonce={}&timestamp={}{}{}",
-        Client::API_BASE_URL,
-        endpoint,
-        api_key_pair.api_key,
-        nonce,
-        timestamp,
-        if !parameters.unwrap_or_default().is_empty() {
-            "&"
-        } else {
-            ""
-        },
-        parameters.unwrap_or_default()
-    );
-
-    let salted_msg = format!("{}\0{}\0{}", method, url, body.unwrap_or_default());
-    format!(
-        "{}&signature={}",
-        url,
-        helper::hmac_sha256(&api_key_pair.api_secret, &salted_msg)
-    )
 }
