@@ -11,6 +11,8 @@ use hyper_tls::HttpsConnector;
 use serde::{de::DeserializeOwned, Serialize};
 use url::Url;
 
+use std::fmt;
+
 /// API key/secret pair.
 ///
 /// Can be created explicitly, or from default environment variables
@@ -470,5 +472,15 @@ impl Client {
         url.query_pairs_mut().append_pair("signature", &signature);
 
         url
+    }
+}
+
+impl fmt::Debug for Client {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.debug_struct("Client")
+            .field("api_key_pair", &"[hidden]")
+            .field("token", &self.token)
+            .field("http_client", &self.http_client)
+            .finish()
     }
 }

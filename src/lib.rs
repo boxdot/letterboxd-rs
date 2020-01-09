@@ -1,3 +1,5 @@
+#![deny(warnings, missing_docs, missing_debug_implementations)]
+
 //! This crate wraps the Letterboxd API which provides easy and flexible
 //! access to data on the Letterboxd.com website.
 //!

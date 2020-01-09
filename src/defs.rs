@@ -1,4 +1,4 @@
-#![allow(dead_code)]
+#![allow(dead_code, missing_docs)]
 #![allow(clippy::enum_variant_names, clippy::large_enum_variant)]
 
 //! This module contains the transcript of types from Definitions section of
