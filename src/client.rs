@@ -2,6 +2,7 @@ use crate::defs;
 use crate::error::{Error, Result};
 use crate::helper;
 
+use futures::stream::StreamExt;
 use hyper::{
     client::HttpConnector,
     header::{self, HeaderValue},
@@ -14,9 +15,6 @@ use serde::{de::DeserializeOwned, Serialize};
 ///
 /// Can be created explicitly, or from default environment variables
 /// `LETTERBOXD_API_KEY` and `LETTERBOXD_API_SECRET`.
-///
-/// Note: Not all APIs are implemented. Feel free to contribute implementation for missing
-/// endpoints. The implementation is usually very straight forward.
 #[derive(Debug, Clone)]
 pub struct ApiKeyPair {
     api_key: String,
@@ -62,6 +60,9 @@ impl ApiKeyPair {
 /// * with a token (all API calls will be authenticated),
 /// * without a token (no API calls will be authenticated; calls that require
 ///   authentication will fail).
+///
+/// **Note**: Not all APIs are implemented. Feel free to contribute implementation for missing
+/// endpoints. The implementation is usually very straight forward.
 pub struct Client {
     api_key_pair: ApiKeyPair,
     token: Option<defs::AccessToken>,
@@ -73,12 +74,25 @@ impl Client {
 
     /// Creates a new client without authentication.
     pub fn new(api_key_pair: ApiKeyPair) -> Self {
-        let https = hyper_tls::HttpsConnector::new().unwrap();
+        let https = hyper_tls::HttpsConnector::new();
         let http_client = hyper::Client::builder().build::<_, Body>(https);
 
         Self {
             api_key_pair,
             token: None,
+            http_client,
+        }
+    }
+
+    /// Crates a new client from a given token.
+    ///
+    /// It is not checked that the token is valid.
+    pub fn with_token(api_key_pair: ApiKeyPair, token: defs::AccessToken) -> Self {
+        let https = HttpsConnector::new();
+        let http_client = hyper::Client::builder().build::<_, Body>(https);
+        Self {
+            api_key_pair,
+            token: Some(token),
             http_client,
         }
     }
@@ -89,7 +103,7 @@ impl Client {
         username: &str,
         password: &str,
     ) -> Result<Self> {
-        let https = hyper_tls::HttpsConnector::new().unwrap();
+        let https = hyper_tls::HttpsConnector::new();
         let http_client = hyper::Client::builder().build::<_, Body>(https);
 
         let body = format!(
@@ -130,19 +144,6 @@ impl Client {
             token: Some(token),
             http_client,
         })
-    }
-
-    /// Crates a new client from a given token.
-    ///
-    /// It is not checked that the token is valid.
-    pub fn with_token(api_key_pair: ApiKeyPair, token: defs::AccessToken) -> Self {
-        let https = HttpsConnector::new().unwrap();
-        let http_client = hyper::Client::builder().build::<_, Body>(https);
-        Self {
-            api_key_pair,
-            token: Some(token),
-            http_client,
-        }
     }
 
     /// Returns if the client has a token.
@@ -411,28 +412,31 @@ impl Client {
         );
 
         let uri: Uri = signed_url.parse()?;
-
-        let mut req = Request::builder();
-        let req = req.method(method).uri(uri.clone()).header(
-            header::CONTENT_TYPE,
-            HeaderValue::from_static("application/json"),
-        );
-
         let content_length = if let Some(body) = body.as_ref() {
             let content_length = body.as_bytes().len();
             HeaderValue::from_str(&format!("{}", content_length)).expect("invalid header value")
         } else {
             HeaderValue::from_static("0")
         };
-        req.header(header::CONTENT_LENGTH, content_length);
 
-        if let Some(token) = self.token.as_ref() {
+        let req = Request::builder()
+            .method(method)
+            .uri(uri.clone())
+            .header(
+                header::CONTENT_TYPE,
+                HeaderValue::from_static("application/json"),
+            )
+            .header(header::CONTENT_LENGTH, content_length);
+
+        let req = if let Some(token) = self.token.as_ref() {
             req.header(
                 header::AUTHORIZATION,
                 HeaderValue::from_str(&format!("Bearer {}", token.access_token))
                     .expect("invalid header value"),
-            );
-        }
+            )
+        } else {
+            req
+        };
 
         let req = req
             .body(body.map(Body::from).unwrap_or_default())

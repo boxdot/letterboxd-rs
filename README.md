@@ -1,6 +1,7 @@
 # Letterboxd API for Rust ![rust build status](https://github.com/boxdot/letterboxd-rs/workflows/rust/badge.svg)
 
-[Letterboxd API](http://api-docs.letterboxd.com) for access to data on the Letterboxd.com website in Rust.
+The [Letterboxd API](http://api-docs.letterboxd.com) client for access to data on the
+Letterboxd.com website in Rust.
 
 ## Example
 

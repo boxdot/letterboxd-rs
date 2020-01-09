@@ -1,9 +1,8 @@
 use std::env;
 
-use tokio::runtime::current_thread::Runtime;
+use tokio::runtime::Runtime;
 
-const USAGE: &'static str =
-    r#"This binary assumes that the following environment variables are set:
+const USAGE: &'static str = r#"This binary assumes that the following environment variables are set:
   LETTERBOXD_API_KEY       letterboxd api key
   LETTERBOXD_API_SECRET    letterboxd api secret
   LETTERBOXD_USERNAME      letterboxd user name
