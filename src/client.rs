@@ -105,6 +105,8 @@ impl Client {
         username: &str,
         password: &str,
     ) -> Result<Self> {
+        let content_type = HeaderValue::from_static("application/x-www-form-urlencoded");
+
         #[derive(Debug, Serialize)]
         struct AuthRequest<'a> {
             grant_type: &'static str,
@@ -112,15 +114,22 @@ impl Client {
             password: &'a str,
         }
 
-        let query = AuthRequest {
+        let request = AuthRequest {
             grant_type: "password",
             username,
             password,
         };
+        let body = serde_url_params::to_vec(&request)?;
 
         let mut client = Self::new(api_key_pair);
         let bytes = client
-            .request_bytes(Method::POST, "auth/token", Some(&query), None)
+            .request_bytes::<()>(
+                Method::POST,
+                "auth/token",
+                None,
+                Some(content_type),
+                Some(body),
+            )
             .await?;
         client.set_token(Some(serde_json::from_slice(&bytes)?));
         Ok(client)
@@ -345,7 +354,7 @@ impl Client {
     }
 
     async fn delete(&self, endpoint_path: &str) -> Result<()> {
-        self.request_bytes::<()>(Method::DELETE, endpoint_path, None, None)
+        self.request_bytes::<()>(Method::DELETE, endpoint_path, None, None, None)
             .await?;
         Ok(())
     }
@@ -362,9 +371,10 @@ impl Client {
         B: Serialize,
         R: DeserializeOwned + 'static,
     {
+        let content_type = HeaderValue::from_static("application/json");
         let body = body.map(serde_json::to_vec).transpose()?;
         let bytes = self
-            .request_bytes(method, endpoint_path, query, body)
+            .request_bytes(method, endpoint_path, query, Some(content_type), body)
             .await?;
         let res = serde_json::from_slice(&bytes)?;
         Ok(res)
@@ -375,6 +385,7 @@ impl Client {
         method: Method,
         endpoint_path: &str,
         query: Option<&Q>,
+        content_type: Option<HeaderValue>,
         body: Option<Vec<u8>>,
     ) -> Result<Vec<u8>>
     where
@@ -386,15 +397,16 @@ impl Client {
             .unwrap(); // TODO
         let query = query.map(serde_url_params::to_string).transpose()?;
         url.set_query(query.as_ref().map(|s| s.as_ref()));
+
         let body = body.unwrap_or_default();
 
         let signed_url = self.sign_url(url, &method, &body);
 
-        let req = Request::builder()
+        let mut req = Request::builder()
             .method(method)
             .uri(signed_url.as_str())
             .header(
-                header::CONTENT_TYPE,
+                header::ACCEPT_ENCODING,
                 HeaderValue::from_static("application/json"),
             )
             .header(
@@ -402,15 +414,18 @@ impl Client {
                 HeaderValue::from_str(&format!("{}", body.len())).expect("invalid header value"),
             );
 
-        let req = if let Some(token) = self.token.as_ref() {
-            req.header(
-                header::AUTHORIZATION,
-                HeaderValue::from_str(&format!("Bearer {}", token.access_token))
-                    .expect("invalid header value"),
-            )
-        } else {
-            req
-        };
+        if let Some(headers) = req.headers_mut() {
+            if let Some(content_type) = content_type {
+                headers.insert(header::CONTENT_TYPE, content_type);
+            }
+            if let Some(token) = self.token.as_ref() {
+                headers.insert(
+                    header::AUTHORIZATION,
+                    HeaderValue::from_str(&format!("Bearer {}", token.access_token))
+                        .expect("invalid header value"),
+                );
+            }
+        }
 
         let req = req.body(Body::from(body)).expect("invalid body");
         let resp = self.http_client.request(req).await?;
