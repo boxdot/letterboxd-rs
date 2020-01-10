@@ -395,7 +395,6 @@ impl Client {
             .unwrap()
             .join(endpoint_path)
             .unwrap(); // TODO
-        let url_only = url.clone(); // for error reporting
         let query = query.map(serde_url_params::to_string).transpose()?;
         url.set_query(query.as_ref().map(|s| s.as_ref()));
 
@@ -444,7 +443,7 @@ impl Client {
             return Err(Error::server_error(
                 status,
                 content.to_string(),
-                url_only.as_str().parse()?,
+                signed_url.as_str().parse()?,
             ));
         }
 
