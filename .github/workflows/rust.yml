@@ -1,46 +1,63 @@
-name: rust
-
 on:
   pull_request:
   push:
     branches:
-    - master
+      - master
   schedule:
-  - cron: '00 01 * * *'
+    - cron: '00 01 * * *'
+
+name: CI
+
+env:
+  CARGO_INCREMENTAL: 0
 
 jobs:
-  build:
-    name: test
-    runs-on: ubuntu-18.04
-    strategy:
-      matrix:
-        build: [stable, beta, nightly]
-        include:
-        - build: stable
-          rust: stable
-        - build: beta
-          rust: beta
-        - build: nightly
-          rust: nightly
+  build-and-test:
+    name: build
+    runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: -D warnings
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
-    - name: Build
-      run: cargo build --all-targets
-    - name: Test
-      run: cargo test
-    - name: Doc
-      run: cargo doc
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --all-targets --all-features
+      - uses: actions-rs/cargo@v1
+        with:
+          command: test
+      - uses: actions-rs/cargo@v1
+        with:
+          command: doc
 
   rustfmt:
     name: rustfmt
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
-    - name: Check formatting
-      run: cargo fmt -- --check
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: rustfmt
+      - uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: -- --check
+
+  clippy:
+    name: clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: clippy
+      - uses: actions-rs/cargo@v1
+        with:
+          command: clippy
