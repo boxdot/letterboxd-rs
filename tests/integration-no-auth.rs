@@ -1,14 +1,13 @@
-const USAGE: &str = r#"This binary assumes that the following environment variables are set:
-  LETTERBOXD_API_KEY       letterboxd api key
-  LETTERBOXD_API_SECRET    letterboxd api secret
-"#;
+fn init() -> letterboxd::Client {
+    dotenv::dotenv().ok();
+    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect("missing API key/secret env var");
+    letterboxd::Client::new(api_key_pair)
+}
 
 #[ignore]
 #[tokio::test]
 async fn films() -> letterboxd::Result<()> {
-    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
-    let client = letterboxd::Client::new(api_key_pair);
-
+    let client = init();
     let req = letterboxd::FilmsRequest {
         per_page: Some(1),
         ..Default::default()
@@ -22,9 +21,7 @@ async fn films() -> letterboxd::Result<()> {
 #[ignore]
 #[tokio::test]
 async fn film_services() -> letterboxd::Result<()> {
-    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
-    let client = letterboxd::Client::new(api_key_pair);
-
+    let client = init();
     let resp = client.film_services().await?;
     println!("{:?}", resp);
 
@@ -34,9 +31,7 @@ async fn film_services() -> letterboxd::Result<()> {
 #[ignore]
 #[tokio::test]
 async fn film_genres() -> letterboxd::Result<()> {
-    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
-    let client = letterboxd::Client::new(api_key_pair);
-
+    let client = init();
     let resp = client.film_genres().await?;
     println!("{:?}", resp);
 
@@ -46,9 +41,7 @@ async fn film_genres() -> letterboxd::Result<()> {
 #[ignore]
 #[tokio::test]
 async fn film() -> letterboxd::Result<()> {
-    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
-    let client = letterboxd::Client::new(api_key_pair);
-
+    let client = init();
     let resp = client.film("2a9q").await?; // Fight Club
     println!("{:?}", resp);
     assert_eq!(resp.name, "Fight Club");
@@ -59,9 +52,7 @@ async fn film() -> letterboxd::Result<()> {
 #[ignore]
 #[tokio::test]
 async fn film_availability() -> letterboxd::Result<()> {
-    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
-    let client = letterboxd::Client::new(api_key_pair);
-
+    let client = init();
     let resp = client.film_availability("2a9q").await?; // Fight Club
     println!("{:?}", resp);
 
@@ -71,9 +62,7 @@ async fn film_availability() -> letterboxd::Result<()> {
 #[ignore]
 #[tokio::test]
 async fn film_statistics() -> letterboxd::Result<()> {
-    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
-    let client = letterboxd::Client::new(api_key_pair);
-
+    let client = init();
     let resp = client.film_statistics("2a9q").await?; // Fight Club
     println!("{:?}", resp);
 
@@ -83,9 +72,7 @@ async fn film_statistics() -> letterboxd::Result<()> {
 #[ignore]
 #[tokio::test]
 async fn list() -> letterboxd::Result<()> {
-    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
-    let client = letterboxd::Client::new(api_key_pair);
-
+    let client = init();
     let resp = client.list("1fKte").await?; // Collection
     println!("{:?}", resp);
     assert_eq!(resp.name, "Collection");
@@ -96,9 +83,7 @@ async fn list() -> letterboxd::Result<()> {
 #[ignore]
 #[tokio::test]
 async fn list_entries() -> letterboxd::Result<()> {
-    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
-    let client = letterboxd::Client::new(api_key_pair);
-
+    let client = init();
     let req = letterboxd::ListEntriesRequest::default();
     let resp = client.list_entries("1fKte", &req).await?; // Collection
     println!("{:?}", resp);
@@ -109,9 +94,7 @@ async fn list_entries() -> letterboxd::Result<()> {
 #[ignore]
 #[tokio::test]
 async fn search() -> letterboxd::Result<()> {
-    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
-    let client = letterboxd::Client::new(api_key_pair);
-
+    let client = init();
     let req = letterboxd::SearchRequest {
         input: String::from("Fight Club"),
         per_page: Some(1),
