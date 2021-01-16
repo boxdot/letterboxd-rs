@@ -1,21 +1,17 @@
 use std::env;
 
-const USAGE: &'static str = r#"This binary assumes that the following environment variables are set:
-  LETTERBOXD_API_KEY       letterboxd api key
-  LETTERBOXD_API_SECRET    letterboxd api secret
-  LETTERBOXD_USERNAME      letterboxd user name
-  LETTERBOXD_PASSWORD      letterboxd password
-"#;
+async fn init() -> letterboxd::Result<letterboxd::Client> {
+    dotenv::dotenv().ok();
+    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect("missing API key/secret env var");
+    let username = env::var("LETTERBOXD_USERNAME").expect("missing LETTERBOXD_USERNAME env var");
+    let password = env::var("LETTERBOXD_PASSWORD").expect("missing LETTERBOXD_USERNAME env var");
+    letterboxd::Client::authenticate(api_key_pair, &username, &password).await
+}
 
 #[ignore]
 #[tokio::test]
-async fn film_relationship() -> Result<(), letterboxd::Error> {
-    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
-    let username = env::var("LETTERBOXD_USERNAME").expect(USAGE);
-    let password = env::var("LETTERBOXD_PASSWORD").expect(USAGE);
-
-    let client = letterboxd::Client::authenticate(api_key_pair, &username, &password).await?;
-
+async fn film_relationship() -> letterboxd::Result<()> {
+    let client = init().await?;
     const FIGHT_CLUB_ID: &str = "2a9q";
 
     let film_relationship = client.film_relationship(FIGHT_CLUB_ID).await?; // Fight Club
@@ -42,12 +38,8 @@ async fn film_relationship() -> Result<(), letterboxd::Error> {
 
 #[ignore]
 #[tokio::test]
-async fn list() -> Result<(), letterboxd::Error> {
-    let api_key_pair = letterboxd::ApiKeyPair::from_env().expect(USAGE);
-    let username = env::var("LETTERBOXD_USERNAME").expect(USAGE);
-    let password = env::var("LETTERBOXD_PASSWORD").expect(USAGE);
-
-    let client = letterboxd::Client::authenticate(api_key_pair, &username, &password).await?;
+async fn list() -> letterboxd::Result<()> {
+    let client = init().await?;
 
     // 1. create a new list
     // 2. search for the list
