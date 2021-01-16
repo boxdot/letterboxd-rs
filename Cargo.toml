@@ -1,6 +1,6 @@
 [package]
 name = "letterboxd"
-version = "0.2.2"
+version = "0.3.0"
 authors = ["boxdot <d@zerovolt.org>"]
 license = "MIT/Apache-2.0"
 description = "Letterboxd API provides access to data on the Letterboxd.com website"
@@ -12,15 +12,14 @@ edition = "2018"
 
 [dependencies]
 hex = "0.4.0"
-hyper = { version = "0.13.1", default-features = false, features = ["stream"] }
-hyper-tls = "0.4.1"
+hyper = { version = "0.14.2", default-features = false, features = ["client", "http1"] }
+hyper-tls = "0.5.0"
 rust-crypto = "0.2.36"
 serde = { version = "1.0.104", features = ["derive"] }
 serde_json = "1.0.44"
 serde_url_params = "0.2.0"
 uuid = { version = "0.8.1", features = ["v4"] }
-futures = "0.3.1"
 url = "2.1.1"
 
 [dev-dependencies]
-tokio = "0.2.8"
+tokio = { version = "1.0.2", features = ["macros", "rt", "rt-multi-thread"] }
