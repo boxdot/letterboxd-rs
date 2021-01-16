@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [v0.3.0](https://github.com/boxdot/letterboxd-rs/compare/v0.2.2...v0.3.0)
 
 ### Changed
 
