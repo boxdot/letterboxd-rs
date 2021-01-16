@@ -11,7 +11,6 @@ pub struct Error {
     kind: Kind,
     url: Option<Uri>,
 }
-
 impl Error {
     pub(crate) fn server_error(status: StatusCode, resp: String, url: Uri) -> Error {
         Error {
@@ -105,5 +104,16 @@ impl From<serde_url_params::Error> for Error {
             kind: Kind::UrlEncoding(err),
             url: None,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn error_is_sync_and_send() {
+        fn is_sync_and_send<E: Sync + Send>() {}
+        is_sync_and_send::<Error>();
     }
 }
