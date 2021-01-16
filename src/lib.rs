@@ -29,32 +29,29 @@
 //! Client without authentication:
 //!
 //! ```rust,no_run
-//! use tokio::runtime::Runtime;
+//! async fn list_films() -> letterboxd::Result<()> {
+//!     let api_key_pair = letterboxd::ApiKeyPair::from_env().unwrap();
+//!     let client = letterboxd::Client::new(api_key_pair);
 //!
-//! let api_key_pair = letterboxd::ApiKeyPair::from_env().unwrap();
-//! let client = letterboxd::Client::new(api_key_pair);
+//!     let req = letterboxd::FilmsRequest {
+//!         per_page: Some(1),
+//!         ..Default::default()
+//!     };
+//!     let resp = client.films(&req).await?;
+//!     println!("{:?}", resp);
 //!
-//! let req = letterboxd::FilmsRequest {
-//!     per_page: Some(1),
-//!     ..Default::default()
-//! };
-//! let resp = client.films(&req);
-//!
-//! let mut rt = Runtime::new().unwrap();
-//! let resp = rt.block_on(resp).unwrap();
-//! println!("{:?}", resp);
+//!     Ok(())
+//! }
 //! ```
 //!
 //! Create and authenticate client with username/password:
 //!
 //! ```rust,no_run
-//! use tokio::runtime::Runtime;
+//! async fn update_film_relationship() -> letterboxd::Result<()> {
+//!     let api_key_pair = letterboxd::ApiKeyPair::from_env().unwrap();
+//!     let username = std::env::var("LETTERBOXD_USERNAME").unwrap();
+//!     let password = std::env::var("LETTERBOXD_PASSWORD").unwrap();
 //!
-//! let api_key_pair = letterboxd::ApiKeyPair::from_env().unwrap();
-//! let username = std::env::var("LETTERBOXD_USERNAME").unwrap();
-//! let password = std::env::var("LETTERBOXD_PASSWORD").unwrap();
-//!
-//! let res = async {
 //!     let client = letterboxd::Client::authenticate(api_key_pair, &username, &password).await?;
 //!     // token can be retrieved after authentication for e.g. caching it on disk
 //!     println!("{:?}", client.token().unwrap());
@@ -65,12 +62,8 @@
 //!     };
 //!     client.update_film_relationship("2a9q", &req).await?; // Fight Club
 //!
-//!     Ok::<_, letterboxd::Error>(())
-//! };
-//!
-//! let mut rt = Runtime::new().unwrap();
-//! let resp = rt.block_on(res).unwrap();
-//! println!("{:?}", resp);
+//!     Ok(())
+//! }
 //! ```
 
 mod client;

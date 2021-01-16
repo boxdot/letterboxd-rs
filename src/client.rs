@@ -1,8 +1,8 @@
 use crate::defs;
 use crate::error::{Error, Result};
 
-use futures::stream::StreamExt;
 use hyper::{
+    body::Buf,
     client::HttpConnector,
     header::{self, HeaderValue},
     Body, Method, Request,
@@ -76,8 +76,7 @@ impl Client {
 
     /// Creates a new client without authentication.
     pub fn new(api_key_pair: ApiKeyPair) -> Self {
-        let https = hyper_tls::HttpsConnector::new();
-        let http_client = hyper::Client::builder().build::<_, Body>(https);
+        let http_client = hyper::Client::builder().build::<_, Body>(HttpsConnector::new());
 
         Self {
             api_key_pair,
@@ -122,7 +121,7 @@ impl Client {
         let body = serde_url_params::to_vec(&request)?;
 
         let mut client = Self::new(api_key_pair);
-        let bytes = client
+        let buf = client
             .request_bytes::<()>(
                 Method::POST,
                 "auth/token",
@@ -131,7 +130,7 @@ impl Client {
                 Some(body),
             )
             .await?;
-        client.set_token(Some(serde_json::from_slice(&bytes)?));
+        client.set_token(Some(serde_json::from_reader(&mut buf.reader())?));
         Ok(client)
     }
 
@@ -373,10 +372,10 @@ impl Client {
     {
         let content_type = HeaderValue::from_static("application/json");
         let body = body.map(serde_json::to_vec).transpose()?;
-        let bytes = self
+        let buf = self
             .request_bytes(method, endpoint_path, query, Some(content_type), body)
             .await?;
-        let res = serde_json::from_slice(&bytes)?;
+        let res = serde_json::from_reader(&mut buf.reader())?;
         Ok(res)
     }
 
@@ -387,7 +386,7 @@ impl Client {
         query: Option<&Q>,
         content_type: Option<HeaderValue>,
         body: Option<Vec<u8>>,
-    ) -> Result<Vec<u8>>
+    ) -> Result<impl Buf>
     where
         Q: Serialize,
     {
@@ -431,23 +430,22 @@ impl Client {
         let resp = self.http_client.request(req).await?;
         let status = resp.status();
 
-        let mut body = resp.into_body();
-        let mut bytes = Vec::new();
-        while let Some(next) = body.next().await {
-            let chunk = next?;
-            bytes.extend(chunk);
-        }
+        let mut buf = hyper::body::aggregate(resp.into_body()).await?;
 
         if !status.is_success() {
-            let content = String::from_utf8_lossy(&bytes);
+            let mut content = String::new();
+            while buf.has_remaining() {
+                content.push_str(&String::from_utf8_lossy(buf.chunk()));
+                buf.advance(buf.chunk().len());
+            }
             return Err(Error::server_error(
                 status,
-                content.to_string(),
+                content,
                 signed_url.as_str().parse()?,
             ));
         }
 
-        Ok(bytes)
+        Ok(buf)
     }
 
     /// Signs the request based on a random and unique nonce, timestamp, and
