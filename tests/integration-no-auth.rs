@@ -155,3 +155,18 @@ async fn film_languages() -> letterboxd::Result<()> {
 
     Ok(())
 }
+
+#[ignore]
+#[tokio::test]
+async fn filmsrequest_langauge() -> letterboxd::Result<()> {
+    let client = init();
+    let req = letterboxd::FilmsRequest {
+        per_page: Some(1),
+        language: Some("ml".into()),
+        ..Default::default()
+    };
+    let resp = client.films(&req).await?;
+    println!("{:?}", resp);
+
+    Ok(())
+}
