@@ -113,3 +113,34 @@ async fn search() -> letterboxd::Result<()> {
 
     Ok(())
 }
+
+#[ignore]
+#[tokio::test]
+async fn films_include_genre() -> letterboxd::Result<()> {
+    let client = init();
+    let req = letterboxd::FilmsRequest {
+        per_page: Some(1),
+        // ai is LID for documentary genre
+        include_genre: Some(vec!["ai".into()]),
+        ..Default::default()
+    };
+    let resp = client.films(&req).await?;
+    println!("{:?}", resp);
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn films_exclude_genre() -> letterboxd::Result<()> {
+    let client = init();
+    let req = letterboxd::FilmsRequest {
+        per_page: Some(1),
+        // 7S is LID for drama genre, 7I = comedy, aC = horror
+        exclude_genre: Some(vec!["7S".into(), "7I".into(), "aC".into()]),
+        ..Default::default()
+    };
+    let resp = client.films(&req).await?;
+    println!("{:?}", resp);
+
+    Ok(())
+}

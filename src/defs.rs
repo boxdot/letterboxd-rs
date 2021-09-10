@@ -985,6 +985,12 @@ pub struct FilmsRequest {
     /// Specify the LID of a genre to limit films to those within the specified
     /// genre.
     pub genre: Option<String>,
+    /// Specify the LID of up to 100 genres to limit films to those within none
+    /// of the specified genres.
+    pub include_genre: Option<Vec<String>>,
+    /// Specify the LID of up to 100 genres to limit films to those within none
+    /// of the specified genres.
+    pub exclude_genre: Option<Vec<String>>,
     /// Specify the starting year of a decade (must end in 0) to limit films to
     /// those released during the decade. 1990
     pub decade: Option<u16>,
