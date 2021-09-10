@@ -1057,6 +1057,20 @@ pub struct GenresResponse {
 }
 
 #[derive(Deserialize, Debug, Clone)]
+pub struct Language {
+    /// The ISO 639-1 defined code of the language.
+    pub code: String,
+    /// The name of the language.
+    pub name: String,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct LanguagesResponse {
+    /// The list of languages.
+    pub items: Vec<Language>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
 pub struct Image {
     /// The available sizes for the image.
     pub sizes: Vec<ImageSize>,

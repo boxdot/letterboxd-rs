@@ -130,6 +130,7 @@ async fn films_include_genre() -> letterboxd::Result<()> {
     Ok(())
 }
 
+#[ignore]
 #[tokio::test]
 async fn films_exclude_genre() -> letterboxd::Result<()> {
     let client = init();
@@ -140,6 +141,16 @@ async fn films_exclude_genre() -> letterboxd::Result<()> {
         ..Default::default()
     };
     let resp = client.films(&req).await?;
+    println!("{:?}", resp);
+
+    Ok(())
+}
+
+#[ignore]
+#[tokio::test]
+async fn film_languages() -> letterboxd::Result<()> {
+    let client = init();
+    let resp = client.film_languages().await?;
     println!("{:?}", resp);
 
     Ok(())

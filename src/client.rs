@@ -181,6 +181,13 @@ impl Client {
         self.get("films/genres").await
     }
 
+    /// Get a list of genres supported by the `films` function.
+    ///
+    /// Genres are returned in alphabetical order.
+    pub async fn film_languages(&self) -> Result<defs::LanguagesResponse> {
+        self.get("films/languages").await
+    }
+
     /// Get details about a film by ID.
     pub async fn film(&self, id: &str) -> Result<defs::Film> {
         self.get(&format!("film/{}", id)).await
