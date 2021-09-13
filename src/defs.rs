@@ -985,6 +985,18 @@ pub struct FilmsRequest {
     /// Specify the LID of a genre to limit films to those within the specified
     /// genre.
     pub genre: Option<String>,
+    /// Specify the LID of up to 100 genres to limit films to those within none
+    /// of the specified genres.
+    pub include_genre: Option<Vec<String>>,
+    /// Specify the LID of up to 100 genres to limit films to those within none
+    /// of the specified genres.
+    pub exclude_genre: Option<Vec<String>>,
+    /// Specify the ISO 3166-1 defined code of the country to limit films to those
+    /// produced in the specified country.
+    pub country: Option<String>,
+    /// Specify the ISO 639-1 defined code of the language to limit films to those
+    /// using the specified spoken language.
+    pub language: Option<String>,
     /// Specify the starting year of a decade (must end in 0) to limit films to
     /// those released during the decade. 1990
     pub decade: Option<u16>,
@@ -1048,6 +1060,20 @@ pub struct Genre {
 pub struct GenresResponse {
     /// The list of genres.
     pub items: Vec<Genre>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct Language {
+    /// The ISO 639-1 defined code of the language.
+    pub code: String,
+    /// The name of the language.
+    pub name: String,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct LanguagesResponse {
+    /// The list of languages.
+    pub items: Vec<Language>,
 }
 
 #[derive(Deserialize, Debug, Clone)]
