@@ -1,13 +1,16 @@
 use crate::defs;
 use crate::error::{Error, Result};
 
+use http_body_util::{BodyExt, Full};
+use hyper::body::Bytes;
 use hyper::{
     body::Buf,
-    client::HttpConnector,
     header::{self, HeaderValue},
-    Body, Method, Request,
+    Method, Request,
 };
 use hyper_tls::HttpsConnector;
+use hyper_util::client::legacy::connect::HttpConnector;
+use hyper_util::client::legacy::Client as HttpClient;
 use serde::{de::DeserializeOwned, Serialize};
 use url::Url;
 
@@ -68,7 +71,7 @@ impl ApiKeyPair {
 pub struct Client {
     api_key_pair: ApiKeyPair,
     token: Option<defs::AccessToken>,
-    http_client: hyper::Client<HttpsConnector<HttpConnector>>,
+    http_client: HttpClient<HttpsConnector<HttpConnector>, Full<Bytes>>,
 }
 
 impl Client {
@@ -76,12 +79,10 @@ impl Client {
 
     /// Creates a new client without authentication.
     pub fn new(api_key_pair: ApiKeyPair) -> Self {
-        let http_client = hyper::Client::builder().build::<_, Body>(HttpsConnector::new());
-
         Self {
             api_key_pair,
             token: None,
-            http_client,
+            http_client: http_client(),
         }
     }
 
@@ -89,12 +90,10 @@ impl Client {
     ///
     /// It is not checked that the token is valid.
     pub fn with_token(api_key_pair: ApiKeyPair, token: defs::AccessToken) -> Self {
-        let https = HttpsConnector::new();
-        let http_client = hyper::Client::builder().build::<_, Body>(https);
         Self {
             api_key_pair,
             token: Some(token),
-            http_client,
+            http_client: http_client(),
         }
     }
 
@@ -433,11 +432,11 @@ impl Client {
             }
         }
 
-        let req = req.body(Body::from(body)).expect("invalid body");
+        let req = req.body(Full::from(body)).expect("invalid body");
         let resp = self.http_client.request(req).await?;
         let status = resp.status();
 
-        let mut buf = hyper::body::aggregate(resp.into_body()).await?;
+        let mut buf = resp.into_body().collect().await?.to_bytes();
 
         if !status.is_success() {
             let mut content = String::new();
@@ -505,4 +504,9 @@ impl fmt::Debug for Client {
             .field("http_client", &self.http_client)
             .finish()
     }
+}
+
+fn http_client() -> HttpClient<HttpsConnector<HttpConnector>, Full<Bytes>> {
+    let https = HttpsConnector::new();
+    HttpClient::builder(hyper_util::rt::TokioExecutor::new()).build(https)
 }

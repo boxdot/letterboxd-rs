@@ -1,7 +1,7 @@
 use std::env;
 
 async fn init() -> letterboxd::Result<letterboxd::Client> {
-    dotenv::dotenv().ok();
+    dotenvy::dotenv().ok();
     let api_key_pair = letterboxd::ApiKeyPair::from_env().expect("missing API key/secret env var");
     let username = env::var("LETTERBOXD_USERNAME").expect("missing LETTERBOXD_USERNAME env var");
     let password = env::var("LETTERBOXD_PASSWORD").expect("missing LETTERBOXD_USERNAME env var");

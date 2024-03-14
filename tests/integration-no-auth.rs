@@ -1,5 +1,5 @@
 fn init() -> letterboxd::Client {
-    dotenv::dotenv().ok();
+    dotenvy::dotenv().ok();
     let api_key_pair = letterboxd::ApiKeyPair::from_env().expect("missing API key/secret env var");
     letterboxd::Client::new(api_key_pair)
 }
@@ -158,7 +158,7 @@ async fn film_languages() -> letterboxd::Result<()> {
 
 #[ignore]
 #[tokio::test]
-async fn filmsrequest_langauge() -> letterboxd::Result<()> {
+async fn films_request_language() -> letterboxd::Result<()> {
     let client = init();
     let req = letterboxd::FilmsRequest {
         per_page: Some(1),
