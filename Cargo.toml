@@ -8,7 +8,7 @@ repository = "https://github.com/boxdot/letterboxd-rs"
 keywords = ["rest", "letterboxd", "client"]
 categories = ["api-bindings"]
 readme = "README.md"
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 hex = "0.4.0"
