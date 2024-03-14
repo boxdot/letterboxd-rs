@@ -464,8 +464,10 @@ impl Client {
     /// See http://api-docs.letterboxd.com/#signing.
     fn sign_url(&self, mut url: Url, method: &Method, body: &[u8]) -> Url {
         use hex::ToHex;
-        use hmac::{Hmac, Mac, NewMac};
+        use hmac::{Hmac, Mac};
         use sha2::Sha256;
+
+        type HmacSha256 = Hmac<Sha256>;
 
         let nonce = uuid::Uuid::new_v4(); // use UUID as random and unique nonce
 
@@ -480,7 +482,7 @@ impl Client {
             .append_pair("timestamp", &format!("{}", timestamp));
 
         // create signature
-        let mut hmac = Hmac::<Sha256>::new_varkey(self.api_key_pair.api_secret.as_bytes())
+        let mut hmac = HmacSha256::new_from_slice(self.api_key_pair.api_secret.as_bytes())
             .expect("HMAC can take key of any size");
         hmac.update(method.as_str().as_bytes());
         hmac.update(&[b'\0']);
