@@ -4,7 +4,7 @@
 //! This module contains the transcript of types from Definitions section of
 //! the Letterboxd API:
 //!
-//! http://letterboxd-api.dev.cactuslab.com/#definitions.
+//! <http://letterboxd-api.dev.cactuslab.com/#definitions>.
 //!
 //! Note that, in the API it is not always specified if a field is optional.
 //! Therefore, most of the types below have to be adjusted with optional
@@ -940,7 +940,7 @@ pub struct FilmTrailer {
     /// The YouTube ID of the trailer. "ICp4g9p_rgo".
     pub id: String,
     /// The YouTube URL for the trailer.
-    /// "https://www.youtube.com/watch?v=ICp4g9p_rgo"
+    /// <https://www.youtube.com/watch?v=ICp4g9p_rgo>
     pub url: String,
 }
 

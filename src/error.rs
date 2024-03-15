@@ -34,6 +34,7 @@ impl Error {
 #[derive(Debug)]
 pub enum Kind {
     Http(hyper::Error),
+    HttpClient(hyper_util::client::legacy::Error),
     Uri(hyper::http::uri::InvalidUri),
     Json(serde_json::Error),
     Utf8Error(std::str::Utf8Error),
@@ -49,6 +50,7 @@ impl fmt::Display for Error {
         }
         match self.kind {
             Kind::Http(ref e) => fmt::Display::fmt(e, f),
+            Kind::HttpClient(ref e) => fmt::Display::fmt(e, f),
             Kind::Uri(ref e) => fmt::Display::fmt(e, f),
             Kind::Json(ref e) => fmt::Display::fmt(e, f),
             Kind::Utf8Error(ref e) => fmt::Display::fmt(e, f),
@@ -75,6 +77,15 @@ impl From<hyper::Error> for Error {
     fn from(err: hyper::Error) -> Self {
         Self {
             kind: Kind::Http(err),
+            url: None,
+        }
+    }
+}
+
+impl From<hyper_util::client::legacy::Error> for Error {
+    fn from(err: hyper_util::client::legacy::Error) -> Self {
+        Self {
+            kind: Kind::HttpClient(err),
             url: None,
         }
     }
