@@ -22,7 +22,7 @@
 //! lists and reviews, the LID can also be found through the Letterboxd website
 //! as the path portion of the entity’s shareable boxd.it link.
 //!
-//! For more information, cf. API docs at http://api-docs.letterboxd.com.
+//! For more information, cf. API docs at <http://api-docs.letterboxd.com>.
 //!
 //! # Examples
 //!
