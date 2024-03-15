@@ -3,7 +3,7 @@
 [![crates-badge]][crates-url]
 [![docs-badge]][docs-url]
 [![license-badge]][license]
-[![CI](https://github.com/boxdot/letterboxd-rs/actions/workflows/rust.yml/badge.svg)](https://github.com/boxdot/letterboxd-rs/actions/workflows/rust.yml)
+[![ci-badge]][ci]
 
 [crates-badge]: https://img.shields.io/crates/v/letterboxd.svg
 [crates-url]: https://crates.io/crates/letterboxd
@@ -11,6 +11,8 @@
 [docs-url]: https://docs.rs/letterboxd
 [license-badge]: https://img.shields.io/crates/l/letterboxd.svg
 [license]: #license
+[ci-badge]: https://github.com/boxdot/letterboxd-rs/actions/workflows/rust.yml/badge.svg
+[ci]: https://github.com/boxdot/letterboxd-rs/actions/workflows/rust.yml
 
 [Letterboxd API](http://api-docs.letterboxd.com) client for accessing the data on the
 Letterboxd.com website in Rust.
